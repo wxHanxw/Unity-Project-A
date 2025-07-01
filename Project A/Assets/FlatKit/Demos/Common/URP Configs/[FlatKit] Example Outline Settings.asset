@@ -13,7 +13,6 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - OUTLINE_FADE_OUT
   - OUTLINE_USE_COLOR
   - OUTLINE_USE_DEPTH
   - OUTLINE_USE_NORMALS
@@ -43,14 +42,14 @@ Material:
     m_Ints: []
     m_Floats:
     - _ColorThresholdMax: 5
-    - _ColorThresholdMin: 1
-    - _DepthThresholdMax: 0.1
+    - _ColorThresholdMin: 4
+    - _DepthThresholdMax: 0.2
     - _DepthThresholdMin: 0.1
     - _FadeRangeEnd: 50
     - _FadeRangeStart: 10
     - _NormalThresholdMax: 1
     - _NormalThresholdMin: 0
-    - _Thickness: 4
+    - _Thickness: 5
     m_Colors:
     - _EdgeColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
@@ -67,21 +66,21 @@ MonoBehaviour:
   m_Name: '[FlatKit] Example Outline Settings'
   m_EditorClassIdentifier: 
   edgeColor: {r: 0, g: 0, b: 0, a: 1}
-  thickness: 4
+  thickness: 5
   resolutionInvariant: 0
-  fadeWithDistance: 1
+  fadeWithDistance: 0
   fadeRangeStart: 10
   fadeRangeEnd: 50
   useDepth: 1
   minDepthThreshold: 0.1
-  maxDepthThreshold: 0.1
+  maxDepthThreshold: 0.2
   useNormals: 1
   minNormalsThreshold: 0
   maxNormalsThreshold: 1
   useColor: 1
-  minColorThreshold: 1
+  minColorThreshold: 4
   maxColorThreshold: 5
   renderEvent: 500
   outlineOnly: 0
-  applyInSceneView: 1
+  applyInSceneView: 0
   effectMaterial: {fileID: -3130267085085746722}

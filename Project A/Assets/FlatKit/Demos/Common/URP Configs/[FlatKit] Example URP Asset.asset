@@ -15,7 +15,7 @@ MonoBehaviour:
   k_AssetVersion: 12
   k_AssetPreviousVersion: 12
   m_RendererType: 1
-  m_RendererData: {fileID: 11400000, guid: 618d298269e66c542b306de85db1faea, type: 2}
+  m_RendererData: {fileID: 0}
   m_RendererDataList:
   - {fileID: 11400000, guid: 4cbdadf2d11484d7aab34b901b5d9c52, type: 2}
   m_DefaultRendererIndex: 0
@@ -25,11 +25,11 @@ MonoBehaviour:
   m_SupportsTerrainHoles: 1
   m_SupportsHDR: 1
   m_HDRColorBufferPrecision: 0
-  m_MSAA: 1
-  m_RenderScale: 1
+  m_MSAA: 2
+  m_RenderScale: 2
   m_UpscalingFilter: 0
-  m_FsrOverrideSharpness: 0
-  m_FsrSharpness: 0.92
+  m_FsrOverrideSharpness: 1
+  m_FsrSharpness: 0.269
   m_EnableLODCrossFade: 1
   m_LODCrossFadeDitheringType: 1
   m_ShEvalMode: 0
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierHigh: 1024
   m_ReflectionProbeBlending: 0
   m_ReflectionProbeBoxProjection: 0
-  m_ShadowDistance: 100
+  m_ShadowDistance: 200
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
   m_Cascade3Split: {x: 0.1, y: 0.3}
@@ -72,6 +72,7 @@ MonoBehaviour:
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
   m_UseFastSRGBLinearConversion: 0
+  m_SupportDataDrivenLensFlare: 1
   m_ShadowType: 1
   m_LocalShadowsSupported: 0
   m_LocalShadowsAtlasResolution: 256
@@ -103,6 +104,10 @@ MonoBehaviour:
   m_PrefilterDBufferMRT1: 1
   m_PrefilterDBufferMRT2: 1
   m_PrefilterDBufferMRT3: 1
+  m_PrefilterSoftShadowsQualityLow: 0
+  m_PrefilterSoftShadowsQualityMedium: 0
+  m_PrefilterSoftShadowsQualityHigh: 0
+  m_PrefilterSoftShadows: 0
   m_PrefilterScreenCoord: 1
   m_PrefilterNativeRenderPass: 1
   m_ShaderVariantLogLevel: 0
