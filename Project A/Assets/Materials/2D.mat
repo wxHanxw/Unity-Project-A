@@ -21,31 +21,40 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 2D
-  m_Shader: {fileID: 4800000, guid: b7839dad95683814aa64166edc107ae2, type: 3}
+  m_Shader: {fileID: 4800000, guid: bee44b4a58655ee4cbff107302a3e131, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _ALPHAPREMULTIPLY_ON
+  - _ALPHATEST_ON
+  - _CELPRIMARYMODE_SINGLE
+  - _DETAILMAPBLENDINGMODE_MULTIPLY
   - _EMISSION
-  - _RECEIVE_SHADOWS_OFF
-  - _SURFACE_TYPE_TRANSPARENT
+  - _GRADIENTSPACE_WORLD
+  - _OUTLINESPACE_SCREEN
+  - _TEXTUREBLENDINGMODE_MULTIPLY
   m_InvalidKeywords:
-  - _FLIPBOOKBLENDING_OFF
+  - _UNITYSHADOWMODE_NONE
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3015
+  m_DoubleSidedGI: 1
+  m_CustomRenderQueue: 2450
   stringTagMap:
-    RenderType: Transparent
+    RenderType: TransparentCutout
   disabledShaderPasses:
   - SRPDEFAULTUNLIT
-  - DepthOnly
-  - SHADOWCASTER
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BASE_COLOR_MAP:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BUMP_MAP:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -85,12 +94,24 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DetailTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EMISSION_COLOR_MAP:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MainTex:
+    - _METALNESS_MAP:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 65aa868109de448da85dcd9033e45370, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Mask0:
@@ -145,6 +166,18 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _REFLECTIONS_COLOR_MAP:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _REFLECTIONS_IOR_MAP:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _REFLECTIONS_ROUGHNESS_MAP:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -162,6 +195,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Splat3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TRANSPARENCY_MAP:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -185,8 +222,10 @@ Material:
     m_Floats:
     - PixelSnap: 0
     - _AllowAlphaOverflow: 0
-    - _AlphaClip: 0
+    - _AlphaClip: 1
     - _AlphaToMask: 0
+    - _BASE_COLOR_WEIGHT: 1
+    - _BUMP_MAP_STRENGTH: 0.3
     - _BaseMapPremultiply: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
@@ -204,7 +243,7 @@ Material:
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _ColorMode: 0
-    - _Cull: 2
+    - _Cull: 0
     - _Cutoff: 0.5
     - _DecalDstBlend: 10
     - _DecalSrcBlend: 5
@@ -217,8 +256,9 @@ Material:
     - _DistortionEnabled: 0
     - _DistortionStrength: 1
     - _DistortionStrengthScaled: 0
-    - _DstBlend: 10
+    - _DstBlend: 0
     - _DstBlendAlpha: 10
+    - _EMISSION_WEIGHT: 1
     - _EmissionEnabled: 0
     - _EnableExternalAlpha: 0
     - _EnableHeightBlend: 0
@@ -248,6 +288,7 @@ Material:
     - _LightingEnabled: 1
     - _LightmapDirectionPitch: 0
     - _LightmapDirectionYaw: 0
+    - _METALNESS: 0
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
@@ -265,7 +306,11 @@ Material:
     - _Parallax: 0.005
     - _ProjectionAngleDiscardEnable: 0
     - _ProjectionAngleDiscardThreshold: 0
-    - _QueueOffset: 15
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _REFLECTIONS_IOR: 1.52
+    - _REFLECTIONS_ROUGHNESS: 1
+    - _REFLECTIONS_WEIGHT: 1
     - _ReceiveShadows: 0
     - _RimEnabled: 0
     - _SelfShadingSize: 0.477
@@ -287,7 +332,8 @@ Material:
     - _SrcBlendAlpha: 1
     - _StencilComp: 0
     - _StencilRef: 0
-    - _Surface: 1
+    - _Surface: 0
+    - _TRANSPARENCY: 0
     - _TextureBlendingMode: 0
     - _TextureImpact: 1
     - _UVSec: 0
@@ -299,26 +345,31 @@ Material:
     - _UvFadeY: 0.1
     - _VertexColorsEnabled: 0
     - _VertexExtrusionSmoothNormals: 0
+    - _WindQuality: 0
     - _WorkflowMode: 1
     - _ZTest: 0
-    - _ZWrite: 0
+    - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BASE_COLOR: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _ColorDim: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorDim: {r: 0, g: 0, b: 0, a: 1}
     - _ColorDimCurve: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
-    - _ColorDimExtra: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
+    - _ColorDimExtra: {r: 1, g: 1, b: 1, a: 1}
     - _ColorDimSteps: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
     - _ColorGradient: {r: 0.85023, g: 0.85034, b: 0.85045, a: 0.85056}
     - _DetailMapColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EMISSION_COLOR: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FlatRimColor: {r: 1, g: 1, b: 1, a: 1}
     - _FlatSpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _HueVariation: {r: 1, g: 0.5, b: 0, a: 0.1}
     - _LightmapDirection: {r: 0, g: 1, b: 0, a: 0}
     - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
+    - _REFLECTIONS_COLOR: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}

@@ -97,12 +97,13 @@ void Outline_float(float2 UV, out float4 Out)
     #endif  // OUTLINE_FADE_OUT
 
     #ifdef OUTLINE_ONLY
-        original.rgb = lerp(1.0 - _EdgeColor.rgb, _EdgeColor.rgb, g * _EdgeColor.a);
+        original.rgb = lerp(1- _EdgeColor.rgb, _EdgeColor.rgb, g * _EdgeColor.a);
+        original.a = 0;
     #endif  // OUTLINE_ONLY
 
     float4 output;
     output.rgb = lerp(original.rgb, _EdgeColor.rgb, g * _EdgeColor.a);
-    output.a = original.a;
+    output.a = 0;
 
     Out = output;
 }

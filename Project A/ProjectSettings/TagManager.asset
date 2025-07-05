@@ -10,6 +10,8 @@ TagManager:
   - Enemy
   - NPCFriend
   - Canvas
+  - Skill
+  - Teleportation Point
   layers:
   - Default
   - TransparentFX
@@ -17,9 +19,9 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Plant
+  - 2D
+  - Map
   - 
   - 
   - 
