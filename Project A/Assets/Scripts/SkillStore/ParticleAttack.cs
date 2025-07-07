@@ -2,13 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SkillSample_NearDamage : MonoBehaviour
+public class ParticleAttack : MonoBehaviour
 {
     // Start is called before the first frame update
-    private float Damage;
+    public float Damage = 1;
     void Start()
     {
-        Damage = GetComponent<SkillInfo>().Damage;
+
     }
 
     // Update is called once per frame
@@ -20,7 +20,10 @@ public class SkillSample_NearDamage : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Enemy")
-            other.GetComponent<EnemyInfo>().GetDamage = Damage;
-    }
+        {
+            other.gameObject.GetComponent<EnemyInfo>().GetDamage = Damage;
+        }
 
+        Destroy(gameObject);
+    }
 }

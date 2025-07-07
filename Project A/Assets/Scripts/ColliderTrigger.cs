@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class ColliderTrigger : MonoBehaviour
 {
+    public string TochedTag = "a";
     public bool isToched;
     public GameObject isTochedAim;
     // Start is called before the first frame update
@@ -20,13 +21,20 @@ public class ColliderTrigger : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        isToched = true;
-        isTochedAim = other.gameObject;
+        if (other.tag == TochedTag)
+        {
+            isToched = true;
+            isTochedAim = other.gameObject;
+        }
+
     }
 
     void OnTriggerExit(Collider other)
     {
-        isToched = false;
-        isTochedAim = null;
+        if (other.tag == TochedTag)
+        {
+            isToched = false;
+            isTochedAim = null;
+        }
     }
 }

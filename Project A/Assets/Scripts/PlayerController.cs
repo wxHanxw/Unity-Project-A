@@ -24,8 +24,14 @@ public class PlayerController : MonoBehaviour
     [Header("Basic Information")]
     public float PlayerMaxHP = 10;
     public float PlayerMaxMP = 10;
-
+    public float PlayerAttack = 1;
+    public float PlayerAttackRange = 20;
     public float PlayerDefence = 0;
+    public float PlayerAttackInterval = 1;
+    public float RegainHP = 1;
+    public float RegainMP = 1;
+
+    private float RegainHPdeltaTime, RegainMPdeltaTime, PlayerAttackIntervaldeltaTime = 0;
 
     [HideInInspector]
     public float PlayerHP, PlayerMP;
@@ -38,7 +44,7 @@ public class PlayerController : MonoBehaviour
     private GameObject[] PlayerUsingSkill;
 
     private Image[] PlayerUsedSkillBarImage;
-    private float[] SkillCD, SkillDuration, SkilldeltaTime;
+    private float[] SkillCD, SkillDuration, SkillMPCost, SkilldeltaTime;
     private bool[] isSkillReady;
 
     [HorizontalLine]
@@ -47,11 +53,16 @@ public class PlayerController : MonoBehaviour
     public GameObject Chooser;
     public CinemachineVirtualCamera VirtualCamera;
 
+    public GameObject NormalAttack;
+    private bool isFarAttack;
+
     [HideInInspector]
-    public GameObject HitAim;
+    public GameObject HitAim, HitUIAim;
 
     [HideInInspector]
     public bool isGround = false, isChooseItem = false, isDead = false, isMouseMove = false, isKeyBoardMove = false, CanMove = true;
+    [HideInInspector]
+    public bool isBattle;
     private int MoveModel = 0;
 
     private float ySpeed;
@@ -69,10 +80,15 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        isFarAttack = NormalAttack.GetComponent<NormalAttackTrigger>().isFarAttack;
+        NormalAttack.GetComponent<NormalAttackTrigger>().Damage = PlayerAttack;
+        NormalAttack.GetComponent<NormalAttackTrigger>().Holder = gameObject;
         PlayerHP = PlayerMaxHP;
         PlayerMP = PlayerMaxMP;
         SkillCD = new float[12];
         SkillDuration = new float[12];
+        SkillMPCost = new float[12];
+
         SkilldeltaTime = new float[12];
         isSkillReady = new bool[12];
         PlayerUsedSkillBarImage = new Image[12];
@@ -86,7 +102,8 @@ public class PlayerController : MonoBehaviour
         {
             if (PlayerUsedSkillBar[i] != null)
                 PlayerUsedSkillBarImage[i] = PlayerUsedSkillBar[i].GetComponent<Image>();
-            SkilldeltaTime[i] = SkillCD[i] - 0.0001f;
+            SkilldeltaTime[i] = SkillCD[i] + 0.0001f;
+            isSkillReady[i] = true;
 
             //寻找Skill的子物体（正在使用的技能）
             foreach (Transform child in PlayerSkill[i].transform)
@@ -95,8 +112,9 @@ public class PlayerController : MonoBehaviour
                     PlayerUsingSkill[i] = child.gameObject;
             }
 
-            SkillCD[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().CollDown;
-            SkillDuration[0] = PlayerUsingSkill[i].GetComponent<SkillInfo>().Duration;
+            SkillCD[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().CoolDown;
+            SkillDuration[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().Duration;
+            SkillMPCost[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().MPCost;
         }
     }
 
@@ -112,9 +130,19 @@ public class PlayerController : MonoBehaviour
             }
             SkillController();
             HPController();
+            AttackModelController();
         }
     }
 
+    private void AttackModelController()
+    {
+        PlayerAttackIntervaldeltaTime += Time.deltaTime;
+        if (isFarAttack && HitAim != null && (HitAim.transform.position - transform.position).magnitude < PlayerAttackRange && isChooseItem && HitAim.tag == "Enemy" && PlayerAttackIntervaldeltaTime > PlayerAttackInterval)
+        {
+            PlayerAttackIntervaldeltaTime = 0;
+            NormalAttack.GetComponent<NormalAttackTrigger>().AttackDirection = (HitAim.transform.position - transform.position) / (HitAim.transform.position - transform.position).magnitude;
+        }
+    }
     private void HPController()
     {
         if (GetDamage != 0)
@@ -132,6 +160,37 @@ public class PlayerController : MonoBehaviour
             PlayerHP = 0;
             isDead = true;
         }
+
+        //脱战回血
+        if (!isBattle && PlayerHP < PlayerMaxHP)
+        {
+            RegainHPdeltaTime += Time.deltaTime;
+            if (RegainHPdeltaTime > 1f)
+            {
+                PlayerHP += RegainHP;
+                RegainHPdeltaTime = 0;
+            }
+        }
+
+        //回复魔法值
+        RegainMPdeltaTime += Time.deltaTime;
+        if (!isBattle && PlayerMP < PlayerMaxMP)
+        {
+            if (RegainMPdeltaTime > 1f)
+            {
+                PlayerMP += RegainMP;
+                RegainMPdeltaTime = 0;
+            }
+        }
+        else if (PlayerHP < PlayerMaxHP)
+        {
+            if (RegainMPdeltaTime > 5f)
+            {
+                PlayerMP += RegainMP;
+                RegainMPdeltaTime = 0;
+            }
+        }
+
     }
     private void Move()
     {
@@ -139,7 +198,8 @@ public class PlayerController : MonoBehaviour
         float MoveDirectiony = Input.GetAxis("Vertical");
         if (MoveDirectionx != 0 || MoveDirectiony != 0)
         {
-            CharacterAgent.isStopped = true;
+            if (CharacterAgent.isOnNavMesh)
+                CharacterAgent.isStopped = true;
             CharacterController.enabled = true;
             isKeyBoardMove = true;
             MoveModel = 0;
@@ -169,12 +229,12 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Q))
         {
-            this.transform.eulerAngles += new Vector3(0, RotateSpeed, 0);
+            this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
         }
 
         if (Input.GetKey(KeyCode.E))
         {
-            this.transform.eulerAngles -= new Vector3(0, RotateSpeed, 0);
+            this.transform.eulerAngles -= new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
         }
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll != 0)
@@ -184,31 +244,52 @@ public class PlayerController : MonoBehaviour
         }
 
         if (CharacterController.enabled)
+        {
             CharacterController.Move(ChooserVelocity + new Vector3(0, ySpeed, 0));
+            if (isKeyBoardMove && isGround)
+                CharacterAgent.Warp(transform.position);
+        }
 
     }
 
     //鼠标交互锁定目标，UI显示目标状态
     private void MouseInteraction()
     {
+        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider.tag == "ChatUI" && hit.collider.name == "Team")
+            {
+                hit.collider.gameObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                HitUIAim = hit.collider.gameObject;
+                if (Input.GetMouseButtonDown(0))
+                {
+                    HitUIAim.transform.parent.gameObject.SetActive(false);
+                    HitUIAim.transform.parent.gameObject.transform.parent.GetComponent<NPCInfo>().isinTeam = !HitUIAim.transform.parent.gameObject.transform.parent.GetComponent<NPCInfo>().isinTeam;
+                    HitUIAim = null;
+                }
+            }
+            else if (HitUIAim != null)
+            {
+                HitUIAim.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                HitUIAim = null;
+            }
+        }
         //右键移动
         if (Input.GetMouseButton(1) && !isKeyBoardMove)
         {
             isMouseMove = true;
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hitmove;
-            if (Physics.Raycast(ray, out hitmove))
+            CharacterAgent.stoppingDistance = 0;
+            CharacterAgent.isStopped = false;
+            CharacterController.enabled = false;
+            if (Input.GetMouseButtonDown(1) && MoveModel == 0)
             {
-                CharacterAgent.stoppingDistance = 0;
-                CharacterAgent.isStopped = false;
-                CharacterController.enabled = false;
-                if (Input.GetMouseButtonDown(1) && MoveModel == 0)
-                {
-                    CharacterAgent.Warp(transform.position);
-                }
-                MoveModel = 1;
-                CharacterAgent.destination = hitmove.point;
+                CharacterAgent.Warp(transform.position);
             }
+            MoveModel = 1;
+            CharacterAgent.destination = hit.point;
 
         }
         else
@@ -218,57 +299,55 @@ public class PlayerController : MonoBehaviour
 
         if (!isChooseItem)
         {
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
+            //预选则
+            if (hit.collider != null && (hit.collider.tag == "IntItem" || hit.collider.tag == "Enemy" || hit.collider.tag == "NPCFriend"))
+            {
+                Chooser.SetActive(true);
+                HitAim = hit.collider.gameObject;
+                //确定选择
+                if (Input.GetMouseButtonDown(0))
+                {
+                    isChooseItem = true;
+                }
+            }
+            else if (isChooseItem == false)
+            {
+                HitAim = null;
+                Chooser.SetActive(false);
+            }
+        }
+        //移动到目标
+        else if (Input.GetMouseButtonDown(0))
+        {
+            if (hit.collider.gameObject != HitAim)
             {
                 if (hit.collider.tag == "IntItem" || hit.collider.tag == "Enemy" || hit.collider.tag == "NPCFriend")
                 {
                     Chooser.SetActive(true);
                     HitAim = hit.collider.gameObject;
-
-                    if (Input.GetMouseButtonDown(0))
-                    {
-                        isChooseItem = true;
-                    }
                 }
-                else if (isChooseItem == false)
+                else
                 {
-                    HitAim = null;
-                    Chooser.SetActive(false);
+                    isChooseItem = false;
                 }
             }
-        }
-        else if (Input.GetMouseButtonDown(0))
-        {
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
+            else
             {
-                if (hit.collider.gameObject != HitAim)
+                if (HitAim.tag == "Enemy")
                 {
-                    if (hit.collider.tag == "IntItem" || hit.collider.tag == "Enemy" || hit.collider.tag == "NPCFriend")
-                    {
-                        Chooser.SetActive(true);
-                        HitAim = hit.collider.gameObject;
-                    }
-                    else
-                    {
-                        isChooseItem = false;
-                    }
+                    CharacterAgent.stoppingDistance = PlayerAttackRange;
                 }
                 else
                 {
                     CharacterAgent.stoppingDistance = 1.5f;
-                    CharacterAgent.isStopped = false;
-                    CharacterController.enabled = false;
-                    CharacterAgent.Warp(transform.position);
-                    CharacterAgent.destination = HitAim.transform.position;
-                    MoveModel = 1;
                 }
-
-
+                CharacterAgent.isStopped = false;
+                CharacterController.enabled = false;
+                CharacterAgent.Warp(transform.position);
+                CharacterAgent.destination = HitAim.transform.position;
+                MoveModel = 1;
             }
+
         }
         if (HitAim != null)
             Chooser.transform.position = HitAim.transform.position;
@@ -278,14 +357,18 @@ public class PlayerController : MonoBehaviour
     {
         //Skill 1
 
-        if (Input.GetKeyDown(KeyCode.Alpha1) && isSkillReady[0])
+        if (PlayerMP > SkillMPCost[0] && Input.GetKeyDown(KeyCode.Alpha1) && isSkillReady[0])
         {
+
+            PlayerMP -= SkillMPCost[0];
             PlayerSkill[0].SetActive(true);
             SkilldeltaTime[0] = 0;
         }
+        //待优化
         if (SkilldeltaTime[0] < SkillCD[0])
         {
             SkilldeltaTime[0] += Time.deltaTime;
+            //关闭技能
             if (PlayerSkill[0].activeSelf && SkilldeltaTime[0] > SkillDuration[0])
             {
                 PlayerSkill[0].SetActive(false);

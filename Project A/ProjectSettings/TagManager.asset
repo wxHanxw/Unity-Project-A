@@ -12,6 +12,7 @@ TagManager:
   - Canvas
   - Skill
   - Teleportation Point
+  - ChatUI
   layers:
   - Default
   - TransparentFX

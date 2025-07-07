@@ -53,7 +53,8 @@ public class EnemyInfo : MonoBehaviour
 
     private Vector3 InitialPosition, MovetoPosition;
 
-    private bool isFollowing = false, isDead = false;
+    [HideInInspector]
+    public bool isFollowing = false, isDead = false;
 
     private GameObject Character, UICanvas;
     // Start is called before the first frame update
@@ -88,6 +89,7 @@ public class EnemyInfo : MonoBehaviour
             Character.GetComponent<PlayerController>().Chooser.SetActive(false);
             this.GetComponent<Collider>().enabled = false;
             NormalAttack.SetActive(false);
+            Canvas.GetComponent<UIController>().isBattle = false;
         }
 
 
@@ -159,8 +161,9 @@ public class EnemyInfo : MonoBehaviour
         if (!isFollowing && IdelIntervaldeltaTime > IdelIntervalTime)
         {
             navMeshAgent.speed = WalkSpeed;
-            IdelIntervaldeltaTime = 0;
+
             System.Random random = new System.Random();
+            IdelIntervaldeltaTime = ((float)random.NextDouble() / 2 - 1) * IdelIntervaldeltaTime / 2;
             float randomR = (float)random.NextDouble() * IdelMoveRange;
             float randomalpha = (float)random.NextDouble() * 2 * math.PI;
             MovetoPosition = new Vector3(randomR * math.sin(randomalpha), 0, randomR * math.cos(randomalpha));

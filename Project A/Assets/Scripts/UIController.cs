@@ -47,6 +47,13 @@ public class UIController : MonoBehaviour
     private int SkillBarLumState = 0;
     public bool isPause = false, isBattle = false;
 
+    //性能释放
+    [HorizontalLine]
+    [Header("Performance release")]
+    public float TickTime = 0.2f;
+    private float TickdeltaTime = 0;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -57,36 +64,51 @@ public class UIController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        SkillBarController();
-        AimBarController();
-        PlayerInfoBarController();
-        MapController();
-
-        if (isBattle)
+        TickdeltaTime += Time.deltaTime;
+        if (TickdeltaTime > TickTime)
         {
-            SkillBarExistTime = 0;
+            TickdeltaTime = 0;
+            SkillBarController();
+            AimBarController();
+            PlayerInfoBarController();
+            MapController();
+            BagController();
+            PauseController();
 
-            if (vignette.color.value.r < 1)
+            //进入战斗屏幕变红
+            if (isBattle)
             {
-                vignette.color.value += new Color(Time.deltaTime, 0, 0);
+                SkillBarExistTime = 0;
+
+                if (vignette.color.value.r < 1)
+                {
+                    vignette.color.value += new Color(Time.deltaTime, 0, 0);
+                }
             }
-        }
-        else
-        {
-            if (SkillBarExistTime < 5)
-                SkillBarExistTime += Time.deltaTime;
-            if (vignette.color.value.r > 0)
+            else
             {
-                vignette.color.value -= new Color(Time.deltaTime, 0, 0);
-            }
+                if (SkillBarExistTime < 5)
+                    SkillBarExistTime += Time.deltaTime;
+                if (vignette.color.value.r > 0)
+                {
+                    vignette.color.value -= new Color(Time.deltaTime, 0, 0);
+                }
 
+            }
+            Player.GetComponent<PlayerController>().isBattle = isBattle;
         }
 
+    }
+
+    private void BagController()
+    {
         if (Input.GetKeyDown(KeyCode.B) && !PausePanel.activeSelf)
         {
             PackagePanel.SetActive(!PackagePanel.activeSelf);
         }
-
+    }
+    private void PauseController()
+    {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             isPause = !isPause;
@@ -97,9 +119,7 @@ public class UIController : MonoBehaviour
         }
 
 
-
     }
-
     private void MapController()
     {
         if (Input.GetKeyDown(KeyCode.M))
@@ -183,6 +203,7 @@ public class UIController : MonoBehaviour
                 AimHPBarLong.enabled = false;
                 AimImageBackGround.enabled = true;
                 AimImageBackGround.color = new Color(80f / 255, 150f / 255, 80f / 255, 0.8f);
+                AimHPImageShort.fillAmount = Mathf.Lerp(a: AimHPImageShort.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCMaxHP, t: 3 * Time.deltaTime);
                 if (AimBarRollerValue <= 0.5f)
                 {
                     AimBarRollerValue += 3 * Time.deltaTime;
