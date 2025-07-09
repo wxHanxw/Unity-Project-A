@@ -18,11 +18,19 @@ public class EnemyInfo : MonoBehaviour
     private float NormalAttackIntervaldeltaTime = 0;
 
     public float EnemyDefence = 1;
+
     [HideInInspector]
     public float EnemyHP;
 
     [HideInInspector]
     public float GetDamage = 0;
+    public GameObject GetDamageHolder;
+
+    private GameObject[] DamageHolderList;
+    private float[] DamageList;
+
+    private GameObject AttackAim;
+
 
     private float RealGetDamage = 0;
     private GameObject Canvas;
@@ -60,6 +68,8 @@ public class EnemyInfo : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        DamageHolderList = new GameObject[10];
+        DamageList = new float[10];
         NormalAttack.GetComponent<NormalAttackTrigger>().Damage = Attack;
         EnemyHP = EnemyMaxHP;
         Canvas = GameObject.FindGameObjectWithTag("Canvas");
@@ -79,7 +89,6 @@ public class EnemyInfo : MonoBehaviour
             RandomMove();
             AttackFollowCheck();
             AttackController();
-            BeAttackedController();
         }
         else if (EnemySprite.activeSelf)
         {
@@ -92,11 +101,6 @@ public class EnemyInfo : MonoBehaviour
             Canvas.GetComponent<UIController>().isBattle = false;
         }
 
-
-    }
-
-    private void BeAttackedController()
-    {
 
     }
 
@@ -116,6 +120,7 @@ public class EnemyInfo : MonoBehaviour
             NormalAttack.SetActive(false);
         }
     }
+
     private void HPController()
     {
         if (BeAttackedIntervaldeltaTime <= 0.15f)
@@ -134,6 +139,22 @@ public class EnemyInfo : MonoBehaviour
                 RealGetDamage = 1;
             }
             EnemyHP -= RealGetDamage;
+            //记录伤害来源
+            for (int i = 0; i < DamageHolderList.Length; i++)
+            {
+                if (DamageHolderList[i] == GetDamageHolder)
+                {
+                    DamageList[i] += RealGetDamage;
+                    break;
+                }
+                else if (DamageHolderList[i] == null)
+                {
+                    DamageHolderList[i] = GetDamageHolder;
+                    DamageList[i] += RealGetDamage;
+                    break;
+                }
+            }
+
             EnemyBeAttackedSprite.SetActive(true);
             BeAttackedIntervaldeltaTime = 0;
             if (Character.GetComponent<PlayerController>().HitAim == null || Character.GetComponent<PlayerController>().HitAim.tag != "Enemy")
@@ -174,17 +195,40 @@ public class EnemyInfo : MonoBehaviour
 
     private void AttackFollowCheck()
     {
+        float MaxDamge = 0;
+        for (int i = 0; i < DamageHolderList.Length; i++)
+        {
+            if (DamageHolderList[i] == null)
+            {
+                break;
+            }
+            else if (MaxDamge < DamageList[i])
+            {
+                MaxDamge = DamageList[i];
+                AttackAim = DamageHolderList[i];
+            }
+        }
+        //攻击最高伤害来源
+        if (AttackAim != null && (transform.position - InitialPosition).magnitude < 6 * IdelMoveRange)
+        {
+            isFollowing = true;
+            navMeshAgent.speed = MoveSpeed;
+            navMeshAgent.destination = AttackAim.transform.position;
+        }
+
+        //攻击附近的敌人
         if ((transform.position - InitialPosition).magnitude < 4 * IdelMoveRange && (transform.position - Character.transform.position).magnitude < AttackFollowRange)
         {
             isFollowing = true;
             navMeshAgent.speed = MoveSpeed;
             navMeshAgent.destination = Character.transform.position;
         }
-        else
+        else if (AttackAim == null)
         {
             isFollowing = false;
         }
 
+        //休战回血
         if (!isFollowing)
         {
             IdelHealdeltaTime += Time.deltaTime;

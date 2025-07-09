@@ -44,8 +44,10 @@ public class PlayerController : MonoBehaviour
     private GameObject[] PlayerUsingSkill;
 
     private Image[] PlayerUsedSkillBarImage;
-    private float[] SkillCD, SkillDuration, SkillMPCost, SkilldeltaTime;
+    private float[] SkillCD, SkillDuration, SkillMPCost, SkillCDdeltaTime, SkillDurationdeltaTime;
     private bool[] isSkillReady;
+
+    private int isSkilling = 0;
 
     [HorizontalLine]
     [Header("Others")]
@@ -89,7 +91,8 @@ public class PlayerController : MonoBehaviour
         SkillDuration = new float[12];
         SkillMPCost = new float[12];
 
-        SkilldeltaTime = new float[12];
+        SkillCDdeltaTime = new float[12];
+        SkillDurationdeltaTime = new float[12];
         isSkillReady = new bool[12];
         PlayerUsedSkillBarImage = new Image[12];
         PlayerUsingSkill = new GameObject[PlayerSkill.Length];
@@ -102,7 +105,6 @@ public class PlayerController : MonoBehaviour
         {
             if (PlayerUsedSkillBar[i] != null)
                 PlayerUsedSkillBarImage[i] = PlayerUsedSkillBar[i].GetComponent<Image>();
-            SkilldeltaTime[i] = SkillCD[i] + 0.0001f;
             isSkillReady[i] = true;
 
             //寻找Skill的子物体（正在使用的技能）
@@ -128,7 +130,11 @@ public class PlayerController : MonoBehaviour
                 Move();
                 MouseInteraction();
             }
+
+
             SkillController();
+
+
             HPController();
             AttackModelController();
         }
@@ -182,11 +188,11 @@ public class PlayerController : MonoBehaviour
                 RegainMPdeltaTime = 0;
             }
         }
-        else if (PlayerHP < PlayerMaxHP)
+        else if (PlayerMP < PlayerMaxMP)
         {
             if (RegainMPdeltaTime > 5f)
             {
-                PlayerMP += RegainMP;
+                //PlayerMP += RegainMP;
                 RegainMPdeltaTime = 0;
             }
         }
@@ -316,8 +322,8 @@ public class PlayerController : MonoBehaviour
                 Chooser.SetActive(false);
             }
         }
-        //移动到目标
-        else if (Input.GetMouseButtonDown(0))
+        //移动到目标(按下鼠标且没有释放技能)
+        else if (Input.GetMouseButtonDown(0) && isSkilling == 0)
         {
             if (hit.collider.gameObject != HitAim)
             {
@@ -359,34 +365,64 @@ public class PlayerController : MonoBehaviour
 
         if (PlayerMP > SkillMPCost[0] && Input.GetKeyDown(KeyCode.Alpha1) && isSkillReady[0])
         {
-
-            PlayerMP -= SkillMPCost[0];
-            PlayerSkill[0].SetActive(true);
-            SkilldeltaTime[0] = 0;
-        }
-        //待优化
-        if (SkilldeltaTime[0] < SkillCD[0])
-        {
-            SkilldeltaTime[0] += Time.deltaTime;
-            //关闭技能
-            if (PlayerSkill[0].activeSelf && SkilldeltaTime[0] > SkillDuration[0])
+            if (isSkilling == 0)
             {
-                PlayerSkill[0].SetActive(false);
-                SkilldeltaTime[0] = 0;
-            }
-
-            if (!PlayerSkill[0].activeSelf)
-            {
-                if (SkilldeltaTime[0] >= SkillCD[0])
+                //寻找UingSkill的子物体PreSkill
+                foreach (Transform child in PlayerUsingSkill[0].transform)
                 {
-                    SkilldeltaTime[0] = SkillCD[0];
+                    if (child.tag == "PreSkill")
+                        child.gameObject.SetActive(false);
+                }
+                PlayerUsingSkill[0].GetComponent<SkillInfo>().isRefresh = true;
+                PlayerUsingSkill[0].SetActive(true);
+                isSkilling = 1;
+            }
+            else if (isSkilling == 1)
+            {
+                PlayerUsingSkill[0].SetActive(false);
+                isSkilling = 0;
+            }
+        }
+
+        //结束预备后消耗魔法，计时器归零
+        if (isSkilling == 1 && Input.GetMouseButtonDown(0))
+        {
+            PlayerMP -= SkillMPCost[0];
+            SkillCDdeltaTime[0] = 0;
+            SkillDurationdeltaTime[0] = 0;
+            isSkillReady[0] = false;
+            isSkilling = 0;
+        }
+
+        //关闭技能
+        if (!PlayerUsingSkill[0].GetComponent<SkillInfo>().isPre && SkillDurationdeltaTime[0] < SkillDuration[0])
+        {
+            SkillDurationdeltaTime[0] += Time.deltaTime;
+
+            if (PlayerUsingSkill[0].activeSelf && SkillDurationdeltaTime[0] > SkillDuration[0])
+            {
+                PlayerUsingSkill[0].SetActive(false);
+                SkillCDdeltaTime[0] = 0;
+                isSkilling = 0;
+            }
+        }
+
+        //开始冷却
+        if (SkillCDdeltaTime[0] < SkillCD[0])
+        {
+            SkillCDdeltaTime[0] += Time.deltaTime;
+            if (!PlayerUsingSkill[0].activeSelf)
+            {
+                if (SkillCDdeltaTime[0] >= SkillCD[0])
+                {
+                    SkillCDdeltaTime[0] = SkillCD[0];
                     isSkillReady[0] = true;
                 }
                 else
                 {
                     isSkillReady[0] = false;
                 }
-                PlayerUsedSkillBarImage[0].fillAmount = (SkillCD[0] - SkilldeltaTime[0]) / SkillCD[0];
+                PlayerUsedSkillBarImage[0].fillAmount = (SkillCD[0] - SkillCDdeltaTime[0]) / SkillCD[0];
             }
 
         }

@@ -6,6 +6,8 @@ public class ParticleAttack : MonoBehaviour
 {
     // Start is called before the first frame update
     public float Damage = 1;
+
+    public GameObject Holder;
     void Start()
     {
 
@@ -22,8 +24,10 @@ public class ParticleAttack : MonoBehaviour
         if (other.tag == "Enemy")
         {
             other.gameObject.GetComponent<EnemyInfo>().GetDamage = Damage;
+            other.gameObject.GetComponent<EnemyInfo>().GetDamageHolder = Holder;
         }
 
-        Destroy(gameObject);
+        if (other.tag != "Particle")
+            Destroy(gameObject);
     }
 }

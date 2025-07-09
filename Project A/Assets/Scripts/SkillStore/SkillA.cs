@@ -12,44 +12,53 @@ public class SkillA : MonoBehaviour
 
     public GameObject[] StoneIns;
 
-    private float[] RandomStartTime;
-    private float[] RandomStartTimedeltaTime;
-    public float RandomRange = 1;
+    public int NumofStone = 1;
+
+    public LayerMask targetLayer;
+
+    private float[] StartTime;
+    private float[] StartTimedeltaTime;
     public float StartRange = 2;
     public float FallSpeed = 1;
 
-    private float ReloaddeltaTime = 0;
     private Vector3 StartPosition, FallDirection;
     // Start is called before the first frame update
     void Start()
     {
-        StoneIns = new GameObject[10];
-        RandomStartTime = new float[10];
+        StoneIns = new GameObject[NumofStone];
+        StartTime = new float[NumofStone];
 
         for (int i = 0; i < StoneIns.Length; i++)
         {
-            RandomStartTime[i] = i * 0.1f;
+            StartTime[i] = i * 0.1f;
         }
-        RandomStartTimedeltaTime = new float[10];
+        GetComponent<SkillInfo>().isRefresh = true;
 
     }
 
     // Update is called once per frame
     void Update()
     {
-
-        ReloaddeltaTime += Time.deltaTime;
-
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer))
         {
             PreSkillRange.transform.position = hit.point + new Vector3(0, 0.1f, 0);
         }
+
+        //刷新技能初值
+        if (GetComponent<SkillInfo>().isRefresh)
+        {
+            PreSkillRange.SetActive(true);
+            StartTimedeltaTime = new float[NumofStone];
+            GetComponent<SkillInfo>().isRefresh = false;
+        }
+
+
+        GetComponent<SkillInfo>().isPre = PreSkillRange.activeSelf;
         if (Input.GetMouseButtonDown(0) && PreSkillRange.activeSelf)
         {
             PreSkillRange.SetActive(false);
-            System.Random random = new System.Random();
             FallDirection = -new Vector3(5, 10, 0);
             StartPosition = PreSkillRange.transform.position - FallDirection;
             for (int i = 0; i < StoneIns.Length; i++)
@@ -66,8 +75,8 @@ public class SkillA : MonoBehaviour
         {
             for (int i = 0; i < StoneIns.Length; i++)
             {
-                RandomStartTimedeltaTime[i] += Time.deltaTime;
-                if (RandomStartTimedeltaTime[i] > RandomStartTime[i])
+                StartTimedeltaTime[i] += Time.deltaTime;
+                if (StartTimedeltaTime[i] > StartTime[i])
                     if (StoneIns[i] != null)
                     {
                         StoneIns[i].transform.position += FallDirection / FallDirection.magnitude * FallSpeed * Time.deltaTime;
@@ -75,13 +84,6 @@ public class SkillA : MonoBehaviour
             }
         }
 
-        if (ReloaddeltaTime >= gameObject.GetComponent<SkillInfo>().Duration)
-        {
-            PreSkillRange.SetActive(true);
-            ReloaddeltaTime = 0;
-            RandomStartTimedeltaTime = new float[10];
-
-        }
-
     }
+
 }
