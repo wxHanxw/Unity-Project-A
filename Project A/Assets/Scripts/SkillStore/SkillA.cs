@@ -11,17 +11,19 @@ public class SkillA : MonoBehaviour
     public GameObject StoneSample;
 
     public GameObject[] StoneIns;
-
+    public Vector3 FallDirection = -new Vector3(5, 10, 0);
     public int NumofStone = 1;
 
     public LayerMask targetLayer;
 
     private float[] StartTime;
-    private float[] StartTimedeltaTime;
+    private float StartTimedeltaTime;
     public float StartRange = 2;
     public float FallSpeed = 1;
 
-    private Vector3 StartPosition, FallDirection;
+    private Vector3 StartPosition;
+
+    private int Index = 0;
     // Start is called before the first frame update
     void Start()
     {
@@ -30,7 +32,8 @@ public class SkillA : MonoBehaviour
 
         for (int i = 0; i < StoneIns.Length; i++)
         {
-            StartTime[i] = i * 0.1f;
+            System.Random random = new System.Random();
+            StartTime[i] = i * 0.02f * (1 + (float)random.NextDouble() / 2);
         }
         GetComponent<SkillInfo>().isRefresh = true;
 
@@ -50,7 +53,7 @@ public class SkillA : MonoBehaviour
         if (GetComponent<SkillInfo>().isRefresh)
         {
             PreSkillRange.SetActive(true);
-            StartTimedeltaTime = new float[NumofStone];
+            StartTimedeltaTime = 0;
             GetComponent<SkillInfo>().isRefresh = false;
         }
 
@@ -59,28 +62,31 @@ public class SkillA : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && PreSkillRange.activeSelf)
         {
             PreSkillRange.SetActive(false);
-            FallDirection = -new Vector3(5, 10, 0);
             StartPosition = PreSkillRange.transform.position - FallDirection;
-            for (int i = 0; i < StoneIns.Length; i++)
-            {
-                System.Random randomR = new System.Random();
-                float Radius = (float)randomR.NextDouble() * StartRange;
-                System.Random randomA = new System.Random();
-                float Angle = (float)randomA.NextDouble() * 2 * (float)Math.PI;
-                StoneIns[i] = Instantiate(StoneSample, StartPosition + new Vector3((float)Radius * math.sin(Angle), 0, (float)Radius * math.cos(Angle)), StoneSample.transform.rotation);
-            }
+            Index = 0;
         }
 
         if (!PreSkillRange.activeSelf)
         {
+            StartTimedeltaTime += Time.deltaTime;
             for (int i = 0; i < StoneIns.Length; i++)
             {
-                StartTimedeltaTime[i] += Time.deltaTime;
-                if (StartTimedeltaTime[i] > StartTime[i])
+                if (StartTimedeltaTime > StartTime[i])
+                {
+                    if (Index == i && StoneIns[Index] == null)
+                    {
+                        System.Random randomR = new System.Random();
+                        float Radius = (float)randomR.NextDouble() * StartRange;
+                        System.Random randomA = new System.Random();
+                        float Angle = (float)randomA.NextDouble() * 2 * (float)Math.PI;
+                        StoneIns[i] = Instantiate(StoneSample, StartPosition + new Vector3((float)Radius * math.sin(Angle), 0, (float)Radius * math.cos(Angle)), StoneSample.transform.rotation);
+                        Index += 1;
+                    }
                     if (StoneIns[i] != null)
                     {
                         StoneIns[i].transform.position += FallDirection / FallDirection.magnitude * FallSpeed * Time.deltaTime;
                     }
+                }
             }
         }
 

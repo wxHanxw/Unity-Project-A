@@ -49,6 +49,8 @@ public class PlayerController : MonoBehaviour
 
     private int isSkilling = 0;
 
+    private bool isPre = false;
+
     [HorizontalLine]
     [Header("Others")]
     public GameObject Character;
@@ -363,71 +365,84 @@ public class PlayerController : MonoBehaviour
     {
         //Skill 1
 
-        if (PlayerMP > SkillMPCost[0] && Input.GetKeyDown(KeyCode.Alpha1) && isSkillReady[0])
+        for (int SkillIndex = 0; SkillIndex < PlayerUsingSkill.Length; SkillIndex++)
         {
-            if (isSkilling == 0)
+            if (PlayerMP > SkillMPCost[SkillIndex]
+                && ((Input.GetKeyDown(KeyCode.Alpha1) && SkillIndex == 0)
+                   || (Input.GetKeyDown(KeyCode.Alpha2) && SkillIndex == 1)
+                   || (Input.GetKeyDown(KeyCode.Alpha3) && SkillIndex == 2)
+                   )
+                && isSkillReady[SkillIndex])
             {
-                //寻找UingSkill的子物体PreSkill
-                foreach (Transform child in PlayerUsingSkill[0].transform)
+                if (isSkilling != SkillIndex + 1)
                 {
-                    if (child.tag == "PreSkill")
-                        child.gameObject.SetActive(false);
+                    //寻找UingSkill的子物体PreSkill
+                    foreach (Transform child in PlayerUsingSkill[SkillIndex].transform)
+                    {
+                        if (child.tag == "PreSkill")
+                            child.gameObject.SetActive(false);
+                    }
+                    PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isRefresh = true;
+                    PlayerUsingSkill[SkillIndex].SetActive(true);
+                    PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre = true;
+                    isSkilling = SkillIndex + 1;
+                    isPre = true;
                 }
-                PlayerUsingSkill[0].GetComponent<SkillInfo>().isRefresh = true;
-                PlayerUsingSkill[0].SetActive(true);
-                isSkilling = 1;
-            }
-            else if (isSkilling == 1)
-            {
-                PlayerUsingSkill[0].SetActive(false);
-                isSkilling = 0;
-            }
-        }
-
-        //结束预备后消耗魔法，计时器归零
-        if (isSkilling == 1 && Input.GetMouseButtonDown(0))
-        {
-            PlayerMP -= SkillMPCost[0];
-            SkillCDdeltaTime[0] = 0;
-            SkillDurationdeltaTime[0] = 0;
-            isSkillReady[0] = false;
-            isSkilling = 0;
-        }
-
-        //关闭技能
-        if (!PlayerUsingSkill[0].GetComponent<SkillInfo>().isPre && SkillDurationdeltaTime[0] < SkillDuration[0])
-        {
-            SkillDurationdeltaTime[0] += Time.deltaTime;
-
-            if (PlayerUsingSkill[0].activeSelf && SkillDurationdeltaTime[0] > SkillDuration[0])
-            {
-                PlayerUsingSkill[0].SetActive(false);
-                SkillCDdeltaTime[0] = 0;
-                isSkilling = 0;
-            }
-        }
-
-        //开始冷却
-        if (SkillCDdeltaTime[0] < SkillCD[0])
-        {
-            SkillCDdeltaTime[0] += Time.deltaTime;
-            if (!PlayerUsingSkill[0].activeSelf)
-            {
-                if (SkillCDdeltaTime[0] >= SkillCD[0])
+                else if (isSkilling == SkillIndex + 1)
                 {
-                    SkillCDdeltaTime[0] = SkillCD[0];
-                    isSkillReady[0] = true;
+                    PlayerUsingSkill[SkillIndex].SetActive(false);
+                    isSkilling = 0;
                 }
-                else
+            }
+            else if (isSkilling != SkillIndex + 1)
+            {
+                PlayerUsingSkill[SkillIndex].SetActive(false);
+            }
+
+            //结束预备后消耗魔法，计时器归零
+            if (isSkilling == SkillIndex + 1 && isPre && PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre == false)
+            {
+                PlayerMP -= SkillMPCost[SkillIndex];
+                SkillCDdeltaTime[SkillIndex] = 0;
+                SkillDurationdeltaTime[SkillIndex] = 0;
+                isSkillReady[SkillIndex] = false;
+                isPre = false;
+            }
+
+            //关闭技能
+            if (!PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre && SkillDurationdeltaTime[SkillIndex] < SkillDuration[SkillIndex])
+            {
+                SkillDurationdeltaTime[SkillIndex] += Time.deltaTime;
+
+                if (PlayerUsingSkill[SkillIndex].activeSelf && SkillDurationdeltaTime[SkillIndex] > SkillDuration[SkillIndex])
                 {
-                    isSkillReady[0] = false;
+                    PlayerUsingSkill[SkillIndex].SetActive(false);
+                    SkillCDdeltaTime[SkillIndex] = 0;
+                    isSkilling = 0;
                 }
-                PlayerUsedSkillBarImage[0].fillAmount = (SkillCD[0] - SkillCDdeltaTime[0]) / SkillCD[0];
+            }
+
+            //开始冷却
+            if (SkillCDdeltaTime[SkillIndex] < SkillCD[SkillIndex])
+            {
+                SkillCDdeltaTime[SkillIndex] += Time.deltaTime;
+                if (!PlayerUsingSkill[SkillIndex].activeSelf)
+                {
+                    if (SkillCDdeltaTime[SkillIndex] >= SkillCD[SkillIndex])
+                    {
+                        SkillCDdeltaTime[SkillIndex] = SkillCD[SkillIndex];
+                        isSkillReady[SkillIndex] = true;
+                    }
+                    else
+                    {
+                        isSkillReady[SkillIndex] = false;
+                    }
+                    PlayerUsedSkillBarImage[SkillIndex].fillAmount = (SkillCD[SkillIndex] - SkillCDdeltaTime[SkillIndex]) / SkillCD[SkillIndex];
+                }
+
             }
 
         }
-
-
 
     }
     void OnTriggerStay(Collider other)

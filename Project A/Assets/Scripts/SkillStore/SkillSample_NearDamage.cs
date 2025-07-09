@@ -14,7 +14,7 @@ public class SkillSample_NearDamage : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        GetComponent<SkillInfo>().isPre = false;
     }
 
     void OnTriggerEnter(Collider other)

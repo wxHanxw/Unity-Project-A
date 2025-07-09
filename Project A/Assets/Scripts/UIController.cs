@@ -270,7 +270,7 @@ public class UIController : MonoBehaviour
     }
     private void SkillBarController()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        if (Input.GetKeyDown(KeyCode.Alpha1) && Input.GetKeyDown(KeyCode.Alpha2) && Input.GetKeyDown(KeyCode.Alpha3))
         {
             SkillBarExistTime = 0;
         }
@@ -279,7 +279,7 @@ public class UIController : MonoBehaviour
             SkillBarLumState = 1;
             SkillBarRollerValue += 4 * Time.deltaTime;
         }
-        else if (SkillBarExistTime >= 5)
+        else if (SkillBarExistTime >= 20)
         {
             SkillBarLumState = 3;
             SkillBarRollerValue -= 2 * Time.deltaTime;
