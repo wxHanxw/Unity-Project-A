@@ -215,6 +215,10 @@ public class EnemyInfo : MonoBehaviour
             navMeshAgent.speed = MoveSpeed;
             navMeshAgent.destination = AttackAim.transform.position;
         }
+        else if ((transform.position - InitialPosition).magnitude > 6 * IdelMoveRange)
+        {
+            isFollowing = false;
+        }
 
         //攻击附近的敌人
         if ((transform.position - InitialPosition).magnitude < 4 * IdelMoveRange && (transform.position - Character.transform.position).magnitude < AttackFollowRange)

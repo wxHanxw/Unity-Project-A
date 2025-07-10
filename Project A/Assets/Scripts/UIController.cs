@@ -236,7 +236,8 @@ public class UIController : MonoBehaviour
                 AimHPBarLong.enabled = true;
                 AimImageBackGround.enabled = true;
                 AimImageBackGround.color = new Color(170f / 255, 50f / 255, 50f / 255, 0.8f);
-                AimHPImageLong.fillAmount = Mathf.Lerp(a: AimHPImageLong.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyMaxHP, t: 3 * Time.deltaTime);
+                if (Player.GetComponent<PlayerController>().HitAim != null)
+                    AimHPImageLong.fillAmount = Mathf.Lerp(a: AimHPImageLong.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyMaxHP, t: 3 * Time.deltaTime);
                 if (AimBarRollerValue <= 1)
                 {
                     AimBarRollerValue += 4 * Time.deltaTime;

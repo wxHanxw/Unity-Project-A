@@ -15,6 +15,6 @@ public class SpriteRotator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, Camera.transform.eulerAngles.y, 0);
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, Camera.transform.eulerAngles.y, transform.eulerAngles.z);
     }
 }

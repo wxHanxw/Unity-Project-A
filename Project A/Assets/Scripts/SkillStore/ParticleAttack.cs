@@ -8,6 +8,8 @@ public class ParticleAttack : MonoBehaviour
     public float Damage = 1;
 
     public GameObject Holder;
+
+    private float DestroydeltaTime = 0;
     void Start()
     {
 
@@ -16,7 +18,14 @@ public class ParticleAttack : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (DestroydeltaTime > 0)
+        {
+            DestroydeltaTime -= Time.deltaTime;
+        }
+        if (DestroydeltaTime < 0)
+        {
+            Destroy(gameObject);
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -28,6 +37,9 @@ public class ParticleAttack : MonoBehaviour
         }
 
         if (other.tag != "Particle")
-            Destroy(gameObject);
+        {
+            DestroydeltaTime = 0.2f;
+        }
+
     }
 }

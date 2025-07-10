@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
@@ -45,11 +46,9 @@ public class PlayerController : MonoBehaviour
 
     private Image[] PlayerUsedSkillBarImage;
     private float[] SkillCD, SkillDuration, SkillMPCost, SkillCDdeltaTime, SkillDurationdeltaTime;
-    private bool[] isSkillReady;
+    private bool[] isSkillReady, isSkilling, isSkillPre;
 
-    private int isSkilling = 0;
-
-    private bool isPre = false;
+    private bool isSkillingAny = false;
 
     [HorizontalLine]
     [Header("Others")]
@@ -96,6 +95,8 @@ public class PlayerController : MonoBehaviour
         SkillCDdeltaTime = new float[12];
         SkillDurationdeltaTime = new float[12];
         isSkillReady = new bool[12];
+        isSkilling = new bool[12];
+        isSkillPre = new bool[12];
         PlayerUsedSkillBarImage = new Image[12];
         PlayerUsingSkill = new GameObject[PlayerSkill.Length];
 
@@ -107,6 +108,7 @@ public class PlayerController : MonoBehaviour
         {
             if (PlayerUsedSkillBar[i] != null)
                 PlayerUsedSkillBarImage[i] = PlayerUsedSkillBar[i].GetComponent<Image>();
+
             isSkillReady[i] = true;
 
             //寻找Skill的子物体（正在使用的技能）
@@ -117,6 +119,7 @@ public class PlayerController : MonoBehaviour
             }
 
             SkillCD[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().CoolDown;
+            SkillCDdeltaTime[i] = SkillCD[i] - 0.001f;
             SkillDuration[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().Duration;
             SkillMPCost[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().MPCost;
         }
@@ -305,6 +308,17 @@ public class PlayerController : MonoBehaviour
             isMouseMove = false;
         }
 
+        isSkillingAny = false;
+        for (int i = 0; i < isSkilling.Length; i++)
+        {
+            if (isSkilling[i])
+            {
+                isSkillingAny = true;
+                break;
+            }
+
+        }
+
         if (!isChooseItem)
         {
             //预选则
@@ -325,7 +339,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         //移动到目标(按下鼠标且没有释放技能)
-        else if (Input.GetMouseButtonDown(0) && isSkilling == 0)
+        else if (Input.GetMouseButtonDown(0) && isSkillingAny)
         {
             if (hit.collider.gameObject != HitAim)
             {
@@ -374,7 +388,7 @@ public class PlayerController : MonoBehaviour
                    )
                 && isSkillReady[SkillIndex])
             {
-                if (isSkilling != SkillIndex + 1)
+                if (!isSkilling[SkillIndex])
                 {
                     //寻找UingSkill的子物体PreSkill
                     foreach (Transform child in PlayerUsingSkill[SkillIndex].transform)
@@ -385,28 +399,35 @@ public class PlayerController : MonoBehaviour
                     PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isRefresh = true;
                     PlayerUsingSkill[SkillIndex].SetActive(true);
                     PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre = true;
-                    isSkilling = SkillIndex + 1;
-                    isPre = true;
+                    isSkilling[SkillIndex] = true;
+                    isSkillPre[SkillIndex] = true;
+                    for (int i = 0; i < PlayerUsingSkill.Length; i++)
+                    {
+                        if (i != SkillIndex && isSkillPre[i])
+                        {
+                            PlayerUsingSkill[i].SetActive(false);
+                        }
+                    }
                 }
-                else if (isSkilling == SkillIndex + 1)
+                else if (isSkilling[SkillIndex])
                 {
                     PlayerUsingSkill[SkillIndex].SetActive(false);
-                    isSkilling = 0;
+                    isSkilling[SkillIndex] = false;
                 }
             }
-            else if (isSkilling != SkillIndex + 1)
+            else if (!isSkilling[SkillIndex])
             {
                 PlayerUsingSkill[SkillIndex].SetActive(false);
             }
 
             //结束预备后消耗魔法，计时器归零
-            if (isSkilling == SkillIndex + 1 && isPre && PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre == false)
+            if (isSkilling[SkillIndex] && isSkillPre[SkillIndex] && PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre == false)
             {
                 PlayerMP -= SkillMPCost[SkillIndex];
                 SkillCDdeltaTime[SkillIndex] = 0;
                 SkillDurationdeltaTime[SkillIndex] = 0;
                 isSkillReady[SkillIndex] = false;
-                isPre = false;
+                isSkillPre[SkillIndex] = false;
             }
 
             //关闭技能
@@ -418,7 +439,7 @@ public class PlayerController : MonoBehaviour
                 {
                     PlayerUsingSkill[SkillIndex].SetActive(false);
                     SkillCDdeltaTime[SkillIndex] = 0;
-                    isSkilling = 0;
+                    isSkilling[SkillIndex] = false;
                 }
             }
 

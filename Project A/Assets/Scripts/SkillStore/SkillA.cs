@@ -33,7 +33,12 @@ public class SkillA : MonoBehaviour
         for (int i = 0; i < StoneIns.Length; i++)
         {
             System.Random random = new System.Random();
-            StartTime[i] = i * 0.02f * (1 + (float)random.NextDouble() / 2);
+            if (i == 0)
+            {
+                StartTime[i] = 0.025f * (1 + (float)random.NextDouble() / 2);
+            }
+            else
+                StartTime[i] = StartTime[i - 1] + 0.02f * (1 + (float)random.NextDouble() / 2);
         }
         GetComponent<SkillInfo>().isRefresh = true;
 
