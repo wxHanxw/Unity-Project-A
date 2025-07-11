@@ -385,6 +385,7 @@ public class PlayerController : MonoBehaviour
                 && ((Input.GetKeyDown(KeyCode.Alpha1) && SkillIndex == 0)
                    || (Input.GetKeyDown(KeyCode.Alpha2) && SkillIndex == 1)
                    || (Input.GetKeyDown(KeyCode.Alpha3) && SkillIndex == 2)
+                   || (Input.GetKeyDown(KeyCode.Alpha4) && SkillIndex == 3)
                    )
                 && isSkillReady[SkillIndex])
             {
