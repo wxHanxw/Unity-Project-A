@@ -19,7 +19,7 @@ public class SkillC : MonoBehaviour
     public float StartRange = 1.5f;
     public float FallSpeed = 60f; // 先调大速度
     public float TrackInterval = 0.5f; // 每个石头追踪的时间间隔
-    public float HitDistance = 1.5f; // 技能与敌人触碰造成伤害的距离
+    public float HitDistance = 0.5f; // 技能与敌人触碰造成伤害的距离
     public float MaxExpandRange = 20f; // 石头最远能扩展的范围距离
     public float TotalTrackTime = 1.0f; // Inspector可调
 
@@ -112,6 +112,12 @@ public class SkillC : MonoBehaviour
                     if (distXZ < HitDistance) // 可调节命中判定
                     {
                         Debug.Log($"石头{i} XZ命中敌人，已销毁");
+                        // 对敌人造成伤害
+                        EnemyInfo enemyInfo = nearestEnemy.GetComponent<EnemyInfo>();
+                        if (enemyInfo != null)
+                        {
+                            enemyInfo.GetDamage = GetComponent<SkillInfo>().Damage;
+                        }
                         Destroy(StoneIns[i]);
                         StoneIns[i] = null;
                     }
