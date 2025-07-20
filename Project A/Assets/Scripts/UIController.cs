@@ -8,6 +8,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using UnityEngine.Animations;
 using UnityEngine.AI;
+using TMPro;
 
 
 public class UIController : MonoBehaviour
@@ -28,9 +29,14 @@ public class UIController : MonoBehaviour
 
     private Vector3 InitialMapCameraRotation, lastMousePosition;
 
+    [HorizontalLine]
+    [Header("Coins")]
+    public TMP_Text CNum;
+    public TMP_Text SNum;
+    public TMP_Text GNum;
 
 
-    public GameObject PausePanel, PackagePanel, InfoPanel, AimInfoPanel, Player;
+    public GameObject PausePanel, PackagePanel, InfoPanel, AimInfoPanel, DeadPanel, Player;
 
     public Volume GlobalVolume;
 
@@ -74,6 +80,7 @@ public class UIController : MonoBehaviour
             MapController();
             BagController();
             PauseController();
+            DeadPanelController();
 
             //进入战斗屏幕变红
             if (isBattle)
@@ -100,11 +107,32 @@ public class UIController : MonoBehaviour
 
     }
 
+    private void DeadPanelController()
+    {
+        if (Player.GetComponent<PlayerController>().PlayerHP <= 0)
+        {
+            DeadPanel.SetActive(true);
+            PackagePanel.SetActive(false);
+            MapCavas.SetActive(false);
+            InfoPanel.SetActive(false);
+        }
+        else if (DeadPanel.activeSelf)
+        {
+            DeadPanel.SetActive(false);
+            PackagePanel.SetActive(false);
+            MapCavas.SetActive(false);
+            InfoPanel.SetActive(true);
+        }
+    }
     private void BagController()
     {
         if (Input.GetKeyDown(KeyCode.B) && !PausePanel.activeSelf)
         {
+            CNum.text = Player.GetComponent<PlayerController>().CopperCoin.ToString();
+            SNum.text = Player.GetComponent<PlayerController>().SilverCoin.ToString();
+            GNum.text = Player.GetComponent<PlayerController>().GoldCoin.ToString();
             PackagePanel.SetActive(!PackagePanel.activeSelf);
+            InfoPanel.SetActive(!PackagePanel.activeSelf);
         }
     }
     private void PauseController()
@@ -271,7 +299,7 @@ public class UIController : MonoBehaviour
     }
     private void SkillBarController()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1) && Input.GetKeyDown(KeyCode.Alpha2) && Input.GetKeyDown(KeyCode.Alpha3))
+        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Alpha4))
         {
             SkillBarExistTime = 0;
         }
@@ -280,7 +308,7 @@ public class UIController : MonoBehaviour
             SkillBarLumState = 1;
             SkillBarRollerValue += 4 * Time.deltaTime;
         }
-        else if (SkillBarExistTime >= 20)
+        else if (SkillBarExistTime >= 5)
         {
             SkillBarLumState = 3;
             SkillBarRollerValue -= 2 * Time.deltaTime;

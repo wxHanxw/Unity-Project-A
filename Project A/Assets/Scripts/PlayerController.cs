@@ -7,12 +7,14 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
+using TMPro;
+using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
     [HorizontalLine]
     [Header("Basic Operation")]
-    public float MoveSpeed;
+    public float PlayerMoveSpeed;
     public float RotateSpeed;
     public float JumpSpeed;
 
@@ -37,6 +39,21 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public float PlayerHP, PlayerMP;
 
+    //Coins
+    [HorizontalLine]
+    [Header("Coins")]
+    public int CopperCoin;
+    public int SilverCoin;
+    public int GoldCoin;
+    public int Diamond;
+
+    public GameObject TakingItem;
+    public TMP_Text ItemNum;
+
+    private float TakingItemdeltaTime = 0;
+
+    private Vector3 ItemLocalPosition;
+
     //Skill
     [HorizontalLine]
     [Header("Skills")]
@@ -49,6 +66,14 @@ public class PlayerController : MonoBehaviour
     private bool[] isSkillReady, isSkilling, isSkillPre;
 
     private bool isSkillingAny = false;
+
+
+    //Equipment
+    [HorizontalLine]
+    [Header("Equipments")]
+    public GameObject[] PlayerEquipment;
+    private GameObject[] PlayerUsingEquipment;
+
 
     [HorizontalLine]
     [Header("Others")]
@@ -103,6 +128,7 @@ public class PlayerController : MonoBehaviour
         CharacterController = Character.GetComponent<CharacterController>();
         CharacterAgent = GetComponent<NavMeshAgent>();
 
+        EquipmentInformation();
 
         for (int i = 0; i < PlayerSkill.Length; i++)
         {
@@ -123,6 +149,8 @@ public class PlayerController : MonoBehaviour
             SkillDuration[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().Duration;
             SkillMPCost[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().MPCost;
         }
+
+        ItemLocalPosition = TakingItem.transform.localPosition;
     }
 
     // Update is called once per frame
@@ -142,9 +170,65 @@ public class PlayerController : MonoBehaviour
 
             HPController();
             AttackModelController();
+            TakingItemControllerSelf();
         }
     }
 
+
+    private void TakingItemControllerSelf()
+    {
+        if (TakingItemdeltaTime < 0.5f)
+        {
+            TakingItemdeltaTime += Time.deltaTime;
+            TakingItem.transform.localPosition += new Vector3(0, (0.5f - TakingItemdeltaTime) * 4 * Time.deltaTime, 0);
+        }
+        else
+        {
+            TakingItem.SetActive(false);
+        }
+    }
+    public void TakingItemController(Sprite ItemSprite, int Num)
+    {
+        TakingItemdeltaTime = 0;
+        TakingItem.transform.localPosition = ItemLocalPosition;
+        TakingItem.SetActive(true);
+        TakingItem.GetComponent<SpriteRenderer>().sprite = ItemSprite;
+        ItemNum.text = "+" + Num.ToString();
+    }
+    public void CoinController()
+    {
+        if (CopperCoin >= 100)
+        {
+            SilverCoin += CopperCoin / 100;
+            CopperCoin = CopperCoin % 100;
+        }
+
+        if (SilverCoin >= 100)
+        {
+            GoldCoin += SilverCoin / 100;
+            SilverCoin = SilverCoin % 100;
+        }
+    }
+    private void EquipmentInformation()
+    {
+        PlayerUsingEquipment = new GameObject[PlayerEquipment.Length];
+        for (int i = 0; i < PlayerEquipment.Length; i++)
+        {
+            //寻找Equipment的子物体（正在使用的技能）
+            foreach (Transform child in PlayerEquipment[i].transform)
+            {
+                if (child.tag == "Equipment")
+                {
+                    PlayerUsingEquipment[i] = child.gameObject;
+                    PlayerAttack += PlayerUsingEquipment[i].GetComponent<EquipmentInfo>().Attack;
+                    PlayerDefence += PlayerUsingEquipment[i].GetComponent<EquipmentInfo>().Defence;
+                    PlayerMaxHP += PlayerUsingEquipment[i].GetComponent<EquipmentInfo>().MaxHP;
+                    PlayerMaxMP += PlayerUsingEquipment[i].GetComponent<EquipmentInfo>().MaxMP;
+                    PlayerMoveSpeed += PlayerUsingEquipment[i].GetComponent<EquipmentInfo>().Speed;
+                }
+            }
+        }
+    }
     private void AttackModelController()
     {
         PlayerAttackIntervaldeltaTime += Time.deltaTime;
@@ -152,6 +236,7 @@ public class PlayerController : MonoBehaviour
         {
             PlayerAttackIntervaldeltaTime = 0;
             NormalAttack.GetComponent<NormalAttackTrigger>().AttackDirection = (HitAim.transform.position - transform.position) / (HitAim.transform.position - transform.position).magnitude;
+            NormalAttack.GetComponent<NormalAttackTrigger>().Damage = PlayerAttack;
         }
     }
     private void HPController()
@@ -236,7 +321,7 @@ public class PlayerController : MonoBehaviour
         Vector3 NormVelocity = new Vector3(math.sin(transform.eulerAngles.y / 180 * math.PI), 0, math.cos(transform.eulerAngles.y / 180 * math.PI)) * MoveDirectiony + new Vector3(math.cos(transform.eulerAngles.y / 180 * math.PI), 0, -math.sin(transform.eulerAngles.y / 180 * math.PI)) * MoveDirectionx;
         if (NormVelocity.magnitude > 1)
             NormVelocity = NormVelocity / NormVelocity.magnitude;
-        ChooserVelocity = MoveSpeed * Time.deltaTime * NormVelocity;
+        ChooserVelocity = PlayerMoveSpeed * Time.deltaTime * NormVelocity;
 
         if (Input.GetKey(KeyCode.Q))
         {
@@ -279,6 +364,7 @@ public class PlayerController : MonoBehaviour
                 {
                     HitUIAim.transform.parent.gameObject.SetActive(false);
                     HitUIAim.transform.parent.gameObject.transform.parent.GetComponent<NPCInfo>().isinTeam = !HitUIAim.transform.parent.gameObject.transform.parent.GetComponent<NPCInfo>().isinTeam;
+                    HitUIAim.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
                     HitUIAim = null;
                 }
             }
@@ -339,7 +425,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         //移动到目标(按下鼠标且没有释放技能)
-        else if (Input.GetMouseButtonDown(0) && isSkillingAny)
+        else if (Input.GetMouseButtonDown(0) && !isSkillingAny)
         {
             if (hit.collider.gameObject != HitAim)
             {
