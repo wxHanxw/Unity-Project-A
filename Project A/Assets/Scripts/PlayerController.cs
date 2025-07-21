@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviour
     [HorizontalLine]
     [Header("Basic Information")]
     public float PlayerMaxHP = 10;
-    public float PlayerMaxMP = 10;
+    public float PlayerMaxMP = 5;
     public float PlayerAttack = 1;
     public float PlayerAttackRange = 20;
     public float PlayerDefence = 0;
@@ -83,6 +83,8 @@ public class PlayerController : MonoBehaviour
 
     public GameObject NormalAttack;
     private bool isFarAttack;
+
+    public GameObject CavasUI;
 
     [HideInInspector]
     public GameObject HitAim, HitUIAim;
@@ -335,8 +337,10 @@ public class PlayerController : MonoBehaviour
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll != 0)
         {
-            float newSize = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y += -scroll * 2f;
-            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSize, 10, 15);
+            float newSizey = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y += -scroll * 2f;
+            float newSizez = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z += scroll * 2f;
+            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSizey, 5, 15);
+            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z = Mathf.Clamp(newSizez, -20, -10);
         }
 
         if (CharacterController.enabled)
@@ -456,7 +460,7 @@ public class PlayerController : MonoBehaviour
 
         for (int SkillIndex = 0; SkillIndex < PlayerUsingSkill.Length; SkillIndex++)
         {
-            if (PlayerMP > SkillMPCost[SkillIndex]
+            if (PlayerMP >= SkillMPCost[SkillIndex]
                 && ((Input.GetKeyDown(KeyCode.Alpha1) && SkillIndex == 0)
                    || (Input.GetKeyDown(KeyCode.Alpha2) && SkillIndex == 1)
                    || (Input.GetKeyDown(KeyCode.Alpha3) && SkillIndex == 2)
@@ -478,6 +482,7 @@ public class PlayerController : MonoBehaviour
                     PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre = true;
                     isSkilling[SkillIndex] = true;
                     isSkillPre[SkillIndex] = true;
+                    CavasUI.GetComponent<UIController>().isSkillUIMove[SkillIndex] = true;
                     for (int i = 0; i < PlayerUsingSkill.Length; i++)
                     {
                         if (i != SkillIndex && isSkillPre[i])
@@ -516,6 +521,7 @@ public class PlayerController : MonoBehaviour
             //开始冷却
             if (SkillCDdeltaTime[SkillIndex] < SkillCD[SkillIndex])
             {
+
                 SkillCDdeltaTime[SkillIndex] += Time.deltaTime;
                 if (!PlayerUsingSkill[SkillIndex].activeSelf)
                 {
@@ -523,6 +529,7 @@ public class PlayerController : MonoBehaviour
                     {
                         SkillCDdeltaTime[SkillIndex] = SkillCD[SkillIndex];
                         isSkillReady[SkillIndex] = true;
+                        isSkilling[SkillIndex] = false;
                     }
                     else
                     {

@@ -6,6 +6,7 @@ public class SkillSample_NearDamage : MonoBehaviour
 {
     // Start is called before the first frame update
     private float Damage;
+    private float DurationdeltaTime = 0;
     void Start()
     {
         Damage = GetComponent<SkillInfo>().Damage;
@@ -15,6 +16,13 @@ public class SkillSample_NearDamage : MonoBehaviour
     void Update()
     {
         GetComponent<SkillInfo>().isPre = false;
+
+        DurationdeltaTime += Time.deltaTime;
+        if (DurationdeltaTime > GetComponent<SkillInfo>().Duration)
+        {
+            gameObject.SetActive(false);
+            DurationdeltaTime = 0;
+        }
     }
 
     void OnTriggerEnter(Collider other)

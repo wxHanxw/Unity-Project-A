@@ -59,6 +59,8 @@ public class SkillSnowstorm : MonoBehaviour
         {
             PreSkillRange.SetActive(true);
             StartTimedeltaTime = 0;
+
+            DurationdeltaTime = 0;
             GetComponent<SkillInfo>().isRefresh = false;
         }
 

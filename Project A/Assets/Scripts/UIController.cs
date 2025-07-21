@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using UnityEngine.Animations;
 using UnityEngine.AI;
 using TMPro;
+using Unity.Mathematics;
 
 
 public class UIController : MonoBehaviour
@@ -41,19 +42,24 @@ public class UIController : MonoBehaviour
     public Volume GlobalVolume;
 
     private Vignette vignette;
-    public Image AimImage, AimImageBackGround, AimHPBarLong, AimHPImageLong, AimHPBarShort, AimHPImageShort;
+    public Image AimImage, AimHPImage;
 
-    public Image SkillBarL, SkillBarR, AimBar;
-    public GameObject SkillBarRollerL, SkillBarLumL, SkillBarRollerR, SkillBarLumR, AimBarRoller;
 
-    public GameObject PlayerInfoBar;
-    private Vector3 PlayerInfoBarInitialPosition;
+    public GameObject PlayerOptionInfo;
+    public GameObject[] SkillUI;
 
-    private Animator SkillBarLumAnimatorL, SkillBarLumAnimatorR;
+    public bool[] isSkillUIMove;
 
-    public float SkillBarRollerValue, AimBarRollerValue;
-    private float SkillBarExistTime = 0;
-    private int SkillBarLumState = 0;
+    private float PlayerOptionInfoVelocity = 0;
+
+    private float[] SkillUIVelocity;
+    private Vector3 PlayerOptionInfoInitialPosition;
+    private Vector3 AimInfoPanelInitialPosition;
+
+    private Vector3[] SkillUIInitialPosition;
+
+    private float SkillBarExistTime = 0, AimBarExistTime = 0;
+
     public bool isPause = false, isBattle = false;
 
     //性能释放
@@ -66,9 +72,18 @@ public class UIController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        SkillBarLumAnimatorL = SkillBarLumL.GetComponent<Animator>();
-        SkillBarLumAnimatorR = SkillBarLumR.GetComponent<Animator>();
-        PlayerInfoBarInitialPosition = PlayerInfoBar.transform.position;
+        PlayerOptionInfoInitialPosition = PlayerOptionInfo.transform.position;
+        AimInfoPanelInitialPosition = AimInfoPanel.transform.position;
+        SkillUIInitialPosition = new Vector3[SkillUI.Length];
+        SkillUIVelocity = new float[SkillUI.Length];
+
+        isSkillUIMove = new bool[SkillUI.Length];
+
+        for (int i = 0; i < SkillUI.Length; i++)
+        {
+            SkillUIInitialPosition[i] = SkillUI[i].transform.position;
+            SkillUIVelocity[i] = 0;
+        }
         GlobalVolume.profile.TryGet<Vignette>(out vignette);
     }
 
@@ -207,7 +222,7 @@ public class UIController : MonoBehaviour
             if (Input.GetMouseButton(1))
             {
                 Vector3 delta = Input.mousePosition - lastMousePosition;
-                MapCamera.transform.position += new Vector3(-delta.x * 0.1f, 0, -delta.y * 0.1f);
+                MapCamera.transform.position += new Vector3(-delta.x * 0.2f, 0, -delta.y * 0.2f);
                 lastMousePosition = Input.mousePosition;
             }
 
@@ -215,14 +230,14 @@ public class UIController : MonoBehaviour
             if (scroll != 0)
             {
                 float newSize = MapCamera.orthographicSize - scroll * 5f;
-                MapCamera.orthographicSize = Mathf.Clamp(newSize, 70, 130);
+                MapCamera.orthographicSize = Mathf.Clamp(newSize, 70, 200);
             }
         }
     }
     private void PlayerInfoBarController()
     {
         PlayerHPImage.fillAmount = Mathf.Lerp(a: PlayerHPImage.fillAmount, b: Player.GetComponent<PlayerController>().PlayerHP / Player.GetComponent<PlayerController>().PlayerMaxHP, t: 3 * Time.deltaTime);
-        PlayerMPImage.fillAmount = Mathf.Lerp(a: PlayerMPImage.fillAmount, b: Player.GetComponent<PlayerController>().PlayerMP / Player.GetComponent<PlayerController>().PlayerMaxMP, t: 3 * Time.deltaTime);
+        PlayerMPImage.fillAmount = Player.GetComponent<PlayerController>().PlayerMP / Player.GetComponent<PlayerController>().PlayerMaxMP;
     }
     private void AimBarController()
     {
@@ -230,131 +245,97 @@ public class UIController : MonoBehaviour
         {
             if (Player.GetComponent<PlayerController>().HitAim.tag == "NPCFriend")
             {
-                AimHPImageShort.enabled = true;
-                AimHPBarShort.enabled = true;
-                AimHPImageLong.enabled = false;
-                AimHPBarLong.enabled = false;
-                AimImageBackGround.enabled = true;
-                AimImageBackGround.color = new Color(80f / 255, 150f / 255, 80f / 255, 0.8f);
-                AimHPImageShort.fillAmount = Mathf.Lerp(a: AimHPImageShort.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCMaxHP, t: 3 * Time.deltaTime);
-                if (AimBarRollerValue <= 0.5f)
-                {
-                    AimBarRollerValue += 3 * Time.deltaTime;
-                }
-                else if (AimBarRollerValue > 0.5f + 3.5 * Time.deltaTime)
-                {
-                    AimBarRollerValue -= 3 * Time.deltaTime;
-                }
+                AimHPImage.enabled = true;
+                AimHPImage.color = new Color(80f / 255, 150f / 255, 80f / 255, 0.8f);
+                AimHPImage.fillAmount = Mathf.Lerp(a: AimHPImage.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCMaxHP, t: 3 * Time.deltaTime);
+
             }
             else if (Player.GetComponent<PlayerController>().HitAim.tag == "IntItem")
             {
-                AimHPImageShort.enabled = false;
-                AimHPBarShort.enabled = false;
-                AimHPImageLong.enabled = false;
-                AimHPBarLong.enabled = false;
-                if (AimBarRollerValue <= 0.1f)
-                {
-                    AimBarRollerValue += 2 * Time.deltaTime;
-                }
-                else if (AimBarRollerValue > 0.1f + 2.5 * Time.deltaTime)
-                {
-                    AimBarRollerValue -= 2 * Time.deltaTime;
-                }
+                AimHPImage.enabled = true;
+                AimHPImage.color = new Color(200f / 255, 200f / 255, 200f / 255, 0.8f);
             }
             else if (Player.GetComponent<PlayerController>().HitAim.tag == "Enemy")
             {
-                AimHPImageShort.enabled = false;
-                AimHPBarShort.enabled = false;
-                AimHPImageLong.enabled = true;
-                AimHPBarLong.enabled = true;
-                AimImageBackGround.enabled = true;
-                AimImageBackGround.color = new Color(170f / 255, 50f / 255, 50f / 255, 0.8f);
+                AimHPImage.enabled = true;
+                AimHPImage.color = new Color(170f / 255, 50f / 255, 50f / 255, 0.8f);
                 if (Player.GetComponent<PlayerController>().HitAim != null)
-                    AimHPImageLong.fillAmount = Mathf.Lerp(a: AimHPImageLong.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyMaxHP, t: 3 * Time.deltaTime);
-                if (AimBarRollerValue <= 1)
-                {
-                    AimBarRollerValue += 4 * Time.deltaTime;
-                }
+                    AimHPImage.fillAmount = Mathf.Lerp(a: AimHPImage.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyMaxHP, t: 3 * Time.deltaTime);
             }
             AimImage.enabled = true;
             AimImage.sprite = Player.GetComponent<PlayerController>().HitAim.GetComponent<SpriteRenderer>().sprite;
+
+            AimInfoPanel.transform.position += 10 * (AimInfoPanelInitialPosition - AimInfoPanel.transform.position) * Time.deltaTime;
         }
-        else
+        else if (AimInfoPanel.transform.position.y < AimInfoPanelInitialPosition.y + 200)
         {
-            AimBarRollerValue -= 6 * Time.deltaTime;
-            AimHPImageShort.enabled = false;
-            AimHPBarShort.enabled = false;
-            AimHPImageLong.enabled = false;
-            AimHPBarLong.enabled = false;
+            AimInfoPanel.transform.position += new Vector3(0, 10 * (1 + math.abs(AimInfoPanel.transform.position.y - AimInfoPanelInitialPosition.y)) * Time.deltaTime, 0);
             AimImage.enabled = false;
-            AimImageBackGround.enabled = false;
+            AimHPImage.enabled = false;
         }
 
-        if (AimBarRollerValue <= 0.03)
-        {
-            AimBarRollerValue = 0.03f;
-        }
-        else if (AimBarRollerValue >= 1)
-        {
-            AimBarRollerValue = 1f;
-        }
-
-        AimBar.fillAmount = AimBarRollerValue;
-        AimBar.gameObject.GetComponent<Slider>().value = AimBarRollerValue;
     }
     private void SkillBarController()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Alpha4))
         {
+            if (PlayerOptionInfoInitialPosition.y - PlayerOptionInfo.transform.position.y > 250)
+            {
+                PlayerOptionInfo.transform.position = new Vector3(PlayerOptionInfo.transform.position.x, PlayerOptionInfoInitialPosition.y - 250, PlayerOptionInfo.transform.position.z);
+                PlayerOptionInfoVelocity = 20;
+            }
             SkillBarExistTime = 0;
+
         }
-        if (SkillBarExistTime < 1 && SkillBarRollerValue < 1)
+
+        if (Input.GetKeyDown(KeyCode.X))
         {
-            SkillBarLumState = 1;
-            SkillBarRollerValue += 4 * Time.deltaTime;
-            if (PlayerInfoBar.transform.position.y < PlayerInfoBarInitialPosition.y)
+            SkillBarExistTime = 10;
+            PlayerOptionInfoVelocity = 500;
+            for (int i = 0; i < SkillUI.Length; i++)
+                SkillUIVelocity[i] = 600;
+        }
+
+        if (SkillBarExistTime < 3 && (PlayerOptionInfoVelocity > 3 || math.abs(PlayerOptionInfoInitialPosition.y - PlayerOptionInfo.transform.position.y) > 1.5))
+        {
+            PlayerOptionInfoVelocity += 100 * (-10 + (PlayerOptionInfoInitialPosition.y - PlayerOptionInfo.transform.position.y)) * Time.deltaTime;
+            PlayerOptionInfoVelocity *= 0.975f;
+            PlayerOptionInfo.transform.position += new Vector3(0, PlayerOptionInfoVelocity * Time.deltaTime, 0);
+        }
+        else if (math.abs(PlayerOptionInfoInitialPosition.y - PlayerOptionInfo.transform.position.y) <= 1.5 && SkillBarExistTime < 3 && PlayerOptionInfoVelocity <= 3)
+        {
+            PlayerOptionInfo.transform.position += (PlayerOptionInfoInitialPosition - PlayerOptionInfo.transform.position) / 4;
+        }
+        else if (SkillBarExistTime == 10 && PlayerOptionInfo.transform.position.y > PlayerOptionInfoInitialPosition.y - 250)
+        {
+            PlayerOptionInfoVelocity -= 5000 * Time.deltaTime;
+            PlayerOptionInfo.transform.position += new Vector3(0, Time.deltaTime * PlayerOptionInfoVelocity, 0);
+        }
+
+        for (int i = 0; i < SkillUI.Length; i++)
+        {
+            if (isSkillUIMove[i])
             {
-                PlayerInfoBar.transform.position += new Vector3(0, 1200 * Time.deltaTime, 0);
+                isSkillUIMove[i] = false;
+                //SkillUI[i].transform.position = new Vector3(SkillUI[i].transform.position.x, SkillUIInitialPosition[i].y - 250, SkillUI[i].transform.position.z);
+                SkillUIVelocity[i] = 500;
             }
-            else
+
+            if (SkillBarExistTime < 3 && (SkillUIVelocity[i] > 3 || math.abs(SkillUIInitialPosition[i].y - SkillUI[i].transform.position.y) > 1.5))
             {
-                PlayerInfoBar.transform.position = PlayerInfoBarInitialPosition;
+                SkillUIVelocity[i] += 100 * (-10 + (SkillUIInitialPosition[i].y - SkillUI[i].transform.position.y)) * Time.deltaTime;
+                SkillUIVelocity[i] *= 0.975f;
+                SkillUI[i].transform.position += new Vector3(0, SkillUIVelocity[i] * Time.deltaTime, 0);
+            }
+            else if (SkillBarExistTime < 3 && math.abs(SkillUIInitialPosition[i].y - SkillUI[i].transform.position.y) <= 1.5 && SkillUIVelocity[i] <= 3)
+            {
+                SkillUI[i].transform.position += (SkillUIInitialPosition[i] - SkillUI[i].transform.position) / 4;
+            }
+            else if (SkillBarExistTime == 10 && SkillUI[i].transform.position.y > SkillUIInitialPosition[i].y - 250)
+            {
+                SkillUIVelocity[i] -= 5000 * Time.deltaTime;
+                SkillUI[i].transform.position += new Vector3(0, Time.deltaTime * SkillUIVelocity[i], 0);
             }
         }
-        else if (SkillBarExistTime >= 5 && SkillBarRollerValue > 0.062)
-        {
-            SkillBarLumState = 3;
-            SkillBarRollerValue -= 2 * Time.deltaTime;
-
-            PlayerInfoBar.transform.position -= new Vector3(0, 600 * Time.deltaTime, 0);
-        }
-
-        if (SkillBarRollerValue <= 0.062)
-        {
-            SkillBarLumState = 0;
-            SkillBarRollerValue = 0.062f;
-        }
-        else if (SkillBarRollerValue >= 1)
-        {
-            SkillBarLumState = 2;
-            SkillBarRollerValue = 1;
-            SkillBarLumL.GetComponent<Image>().sprite = SkillBarLumL.GetComponent<SpriteRenderer>().sprite;
-            SkillBarLumR.GetComponent<Image>().sprite = SkillBarLumR.GetComponent<SpriteRenderer>().sprite;
-        }
-        else
-        {
-            SkillBarRollerL.GetComponent<Image>().sprite = SkillBarRollerL.GetComponent<SpriteRenderer>().sprite;
-            SkillBarLumL.GetComponent<Image>().sprite = SkillBarLumL.GetComponent<SpriteRenderer>().sprite;
-
-            SkillBarRollerR.GetComponent<Image>().sprite = SkillBarRollerR.GetComponent<SpriteRenderer>().sprite;
-            SkillBarLumR.GetComponent<Image>().sprite = SkillBarLumR.GetComponent<SpriteRenderer>().sprite;
-        }
-        SkillBarLumAnimatorL.SetInteger("State", SkillBarLumState);
-        SkillBarL.fillAmount = SkillBarRollerValue / 1;
-        SkillBarL.gameObject.GetComponent<Slider>().value = SkillBarRollerValue / 1;
-
-        SkillBarLumAnimatorR.SetInteger("State", SkillBarLumState);
-        SkillBarR.fillAmount = SkillBarRollerValue / 1;
-        SkillBarR.gameObject.GetComponent<Slider>().value = SkillBarRollerValue / 1;
     }
 }
