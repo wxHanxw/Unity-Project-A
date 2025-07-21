@@ -17,8 +17,8 @@ public class SkillA : MonoBehaviour
     public LayerMask targetLayer;
 
     private float[] StartTime;
-    private float StartTimedeltaTime;
-    public float StartRange = 2;
+
+    private float StartTimedeltaTime, DurationdeltaTime = 0;
     public float FallSpeed = 1;
 
     private Vector3 StartPosition;
@@ -60,6 +60,7 @@ public class SkillA : MonoBehaviour
             PreSkillRange.SetActive(true);
             StartTimedeltaTime = 0;
             GetComponent<SkillInfo>().isRefresh = false;
+            DurationdeltaTime = 0;
         }
 
 
@@ -73,25 +74,29 @@ public class SkillA : MonoBehaviour
 
         if (!PreSkillRange.activeSelf)
         {
-            StartTimedeltaTime += Time.deltaTime;
-            for (int i = 0; i < StoneIns.Length; i++)
+            DurationdeltaTime += Time.deltaTime;
+            if (DurationdeltaTime < GetComponent<SkillInfo>().Duration)
             {
-                if (StartTimedeltaTime > StartTime[i])
+                StartTimedeltaTime += Time.deltaTime;
+                for (int i = 0; i < StoneIns.Length; i++)
                 {
-                    if (Index == i && StoneIns[Index] == null)
+                    if (StartTimedeltaTime > StartTime[i])
                     {
-                        System.Random randomR = new System.Random();
-                        float Radius = (float)randomR.NextDouble() * StartRange;
-                        System.Random randomA = new System.Random();
-                        float Angle = (float)randomA.NextDouble() * 2 * (float)Math.PI;
-                        StoneIns[i] = Instantiate(StoneSample, StartPosition + new Vector3((float)Radius * math.sin(Angle), 0, (float)Radius * math.cos(Angle)), StoneSample.transform.rotation);
-                        Index += 1;
-                    }
-                    if (StoneIns[i] != null)
-                    {
-                        StoneIns[i].transform.position += FallDirection / FallDirection.magnitude * FallSpeed * Time.deltaTime;
+                        if (Index == i && StoneIns[Index] == null)
+                        {
+                            StoneIns[i] = Instantiate(StoneSample, StartPosition, StoneSample.transform.rotation);
+                            Index += 1;
+                        }
+                        if (StoneIns[i] != null)
+                        {
+                            StoneIns[i].transform.position += FallDirection / FallDirection.magnitude * FallSpeed * Time.deltaTime;
+                        }
                     }
                 }
+            }
+            else
+            {
+                gameObject.SetActive(false);
             }
         }
 

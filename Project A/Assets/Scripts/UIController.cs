@@ -43,10 +43,13 @@ public class UIController : MonoBehaviour
     private Vignette vignette;
     public Image AimImage, AimImageBackGround, AimHPBarLong, AimHPImageLong, AimHPBarShort, AimHPImageShort;
 
-    public Image SkillBar, AimBar;
-    public GameObject SkillBarRoller, SkillBarLum, AimBarRoller;
+    public Image SkillBarL, SkillBarR, AimBar;
+    public GameObject SkillBarRollerL, SkillBarLumL, SkillBarRollerR, SkillBarLumR, AimBarRoller;
 
-    private Animator SkillBarLumAnimator;
+    public GameObject PlayerInfoBar;
+    private Vector3 PlayerInfoBarInitialPosition;
+
+    private Animator SkillBarLumAnimatorL, SkillBarLumAnimatorR;
 
     public float SkillBarRollerValue, AimBarRollerValue;
     private float SkillBarExistTime = 0;
@@ -63,7 +66,9 @@ public class UIController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        SkillBarLumAnimator = SkillBarLum.GetComponent<Animator>();
+        SkillBarLumAnimatorL = SkillBarLumL.GetComponent<Animator>();
+        SkillBarLumAnimatorR = SkillBarLumR.GetComponent<Animator>();
+        PlayerInfoBarInitialPosition = PlayerInfoBar.transform.position;
         GlobalVolume.profile.TryGet<Vignette>(out vignette);
     }
 
@@ -303,15 +308,25 @@ public class UIController : MonoBehaviour
         {
             SkillBarExistTime = 0;
         }
-        if (SkillBarExistTime < 1)
+        if (SkillBarExistTime < 1 && SkillBarRollerValue < 1)
         {
             SkillBarLumState = 1;
             SkillBarRollerValue += 4 * Time.deltaTime;
+            if (PlayerInfoBar.transform.position.y < PlayerInfoBarInitialPosition.y)
+            {
+                PlayerInfoBar.transform.position += new Vector3(0, 1200 * Time.deltaTime, 0);
+            }
+            else
+            {
+                PlayerInfoBar.transform.position = PlayerInfoBarInitialPosition;
+            }
         }
-        else if (SkillBarExistTime >= 5)
+        else if (SkillBarExistTime >= 5 && SkillBarRollerValue > 0.062)
         {
             SkillBarLumState = 3;
             SkillBarRollerValue -= 2 * Time.deltaTime;
+
+            PlayerInfoBar.transform.position -= new Vector3(0, 600 * Time.deltaTime, 0);
         }
 
         if (SkillBarRollerValue <= 0.062)
@@ -323,15 +338,23 @@ public class UIController : MonoBehaviour
         {
             SkillBarLumState = 2;
             SkillBarRollerValue = 1;
-            SkillBarLum.GetComponent<Image>().sprite = SkillBarLum.GetComponent<SpriteRenderer>().sprite;
+            SkillBarLumL.GetComponent<Image>().sprite = SkillBarLumL.GetComponent<SpriteRenderer>().sprite;
+            SkillBarLumR.GetComponent<Image>().sprite = SkillBarLumR.GetComponent<SpriteRenderer>().sprite;
         }
         else
         {
-            SkillBarRoller.GetComponent<Image>().sprite = SkillBarRoller.GetComponent<SpriteRenderer>().sprite;
-            SkillBarLum.GetComponent<Image>().sprite = SkillBarLum.GetComponent<SpriteRenderer>().sprite;
+            SkillBarRollerL.GetComponent<Image>().sprite = SkillBarRollerL.GetComponent<SpriteRenderer>().sprite;
+            SkillBarLumL.GetComponent<Image>().sprite = SkillBarLumL.GetComponent<SpriteRenderer>().sprite;
+
+            SkillBarRollerR.GetComponent<Image>().sprite = SkillBarRollerR.GetComponent<SpriteRenderer>().sprite;
+            SkillBarLumR.GetComponent<Image>().sprite = SkillBarLumR.GetComponent<SpriteRenderer>().sprite;
         }
-        SkillBarLumAnimator.SetInteger("State", SkillBarLumState);
-        SkillBar.fillAmount = SkillBarRollerValue / 1;
-        SkillBar.gameObject.GetComponent<Slider>().value = SkillBarRollerValue / 1;
+        SkillBarLumAnimatorL.SetInteger("State", SkillBarLumState);
+        SkillBarL.fillAmount = SkillBarRollerValue / 1;
+        SkillBarL.gameObject.GetComponent<Slider>().value = SkillBarRollerValue / 1;
+
+        SkillBarLumAnimatorR.SetInteger("State", SkillBarLumState);
+        SkillBarR.fillAmount = SkillBarRollerValue / 1;
+        SkillBarR.gameObject.GetComponent<Slider>().value = SkillBarRollerValue / 1;
     }
 }

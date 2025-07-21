@@ -23,7 +23,7 @@ public class SkillD : MonoBehaviour
 
     void Update()
     {
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);//AAAAAAAAAAAAA
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer))
         {
@@ -127,6 +127,7 @@ public class SkillD : MonoBehaviour
         moveDir = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle));
 
         lastMushroomPos = mushroom.transform.position;
+        
         while (timer2 < skillDuration)
         {
             if (enemy == null)

@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour
     private float[] SkillCD, SkillDuration, SkillMPCost, SkillCDdeltaTime, SkillDurationdeltaTime;
     private bool[] isSkillReady, isSkilling, isSkillPre;
 
-    private bool isSkillingAny = false;
+    public bool isSkillingAny = false;
 
 
     //Equipment
@@ -394,17 +394,6 @@ public class PlayerController : MonoBehaviour
             isMouseMove = false;
         }
 
-        isSkillingAny = false;
-        for (int i = 0; i < isSkilling.Length; i++)
-        {
-            if (isSkilling[i])
-            {
-                isSkillingAny = true;
-                break;
-            }
-
-        }
-
         if (!isChooseItem)
         {
             //预选则
@@ -425,7 +414,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         //移动到目标(按下鼠标且没有释放技能)
-        else if (Input.GetMouseButtonDown(0) && !isSkillingAny)
+        else if (Input.GetMouseButtonDown(0))
         {
             if (hit.collider.gameObject != HitAim)
             {
@@ -519,16 +508,9 @@ public class PlayerController : MonoBehaviour
             }
 
             //关闭技能
-            if (!PlayerUsingSkill[SkillIndex].GetComponent<SkillInfo>().isPre && SkillDurationdeltaTime[SkillIndex] < SkillDuration[SkillIndex])
+            if (PlayerUsingSkill[SkillIndex].activeSelf)
             {
-                SkillDurationdeltaTime[SkillIndex] += Time.deltaTime;
-
-                if (PlayerUsingSkill[SkillIndex].activeSelf && SkillDurationdeltaTime[SkillIndex] > SkillDuration[SkillIndex])
-                {
-                    PlayerUsingSkill[SkillIndex].SetActive(false);
-                    SkillCDdeltaTime[SkillIndex] = 0;
-                    isSkilling[SkillIndex] = false;
-                }
+                SkillCDdeltaTime[SkillIndex] = 0;
             }
 
             //开始冷却
