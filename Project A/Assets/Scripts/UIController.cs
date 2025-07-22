@@ -269,7 +269,7 @@ public class UIController : MonoBehaviour
         }
         else if (AimInfoPanel.transform.position.y < AimInfoPanelInitialPosition.y + 200)
         {
-            AimInfoPanel.transform.position += new Vector3(0, 10 * (1 + math.abs(AimInfoPanel.transform.position.y - AimInfoPanelInitialPosition.y)) * Time.deltaTime, 0);
+            AimInfoPanel.transform.position += new Vector3(0, (0.1f + 15 * math.abs(AimInfoPanel.transform.position.y - AimInfoPanelInitialPosition.y)) * Time.deltaTime, 0);
             AimImage.enabled = false;
             AimHPImage.enabled = false;
         }

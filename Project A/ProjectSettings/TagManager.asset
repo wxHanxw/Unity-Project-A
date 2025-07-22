@@ -17,6 +17,7 @@ TagManager:
   - Particle
   - Equipment
   - Cemetery
+  - BagSpace
   layers:
   - Default
   - TransparentFX

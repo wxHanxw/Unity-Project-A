@@ -62,7 +62,7 @@ public class EnemyInfo : MonoBehaviour
     private Vector3 InitialPosition, MovetoPosition;
 
     [HideInInspector]
-    public bool isFollowing = false, isDead = false;
+    public bool isFollowing = false, isDead = false, isBattle = false;
 
     private GameObject Character, UICanvas;
     // Start is called before the first frame update
@@ -233,7 +233,7 @@ public class EnemyInfo : MonoBehaviour
         }
 
         //休战回血
-        if (!isFollowing)
+        if (!isFollowing && !isBattle)
         {
             IdelHealdeltaTime += Time.deltaTime;
             if (IdelHealdeltaTime > 0.3f)

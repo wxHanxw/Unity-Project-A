@@ -53,6 +53,7 @@ public class SkillSheep : MonoBehaviour
             }
             SheepdeltaTime += Time.deltaTime;
 
+            AimEnemy.GetComponent<EnemyInfo>().isBattle = true;
             MoveIntervaldeltaTime += Time.deltaTime;
             if (MoveIntervaldeltaTime > 0.5f)
             {
