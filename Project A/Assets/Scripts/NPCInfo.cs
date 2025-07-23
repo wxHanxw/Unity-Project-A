@@ -17,7 +17,7 @@ public class NPCInfo : MonoBehaviour
     public float RegainMP = 1;
 
     [HideInInspector]
-    public float NPCHP, NPCMP, GetDamage, RealGetDamage;
+    public float NPCHP, NPCMP, GetDamage, RealGetDamage, GetHeal;
     private float RegainHPdeltaTime, RegainMPdeltaTime;
 
     [HorizontalLine]
@@ -139,6 +139,16 @@ public class NPCInfo : MonoBehaviour
         {
             NPCHP = 0;
             isDead = true;
+        }
+
+        if (GetHeal != 0)
+        {
+            NPCHP += GetHeal;
+            GetHeal = 0;
+        }
+        if (NPCHP >= NPCMaxHP)
+        {
+            NPCHP = NPCMaxHP;
         }
 
         //脱战回血

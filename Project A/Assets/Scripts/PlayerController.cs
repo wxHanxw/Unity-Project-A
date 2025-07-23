@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
 
 
     [HideInInspector]
-    public float GetDamage;
+    public float GetDamage, GetHeal;
     private float RealGetDamage;
 
     [HorizontalLine]
@@ -257,6 +257,16 @@ public class PlayerController : MonoBehaviour
         {
             PlayerHP = 0;
             isDead = true;
+        }
+
+        if (GetHeal != 0)
+        {
+            PlayerHP += GetHeal;
+            GetHeal = 0;
+        }
+        if (PlayerHP >= PlayerMaxHP)
+        {
+            PlayerHP = PlayerMaxHP;
         }
 
         //脱战回血
