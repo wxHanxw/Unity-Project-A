@@ -58,7 +58,7 @@ public class UIController : MonoBehaviour
 
     private Vector3[] SkillUIInitialPosition;
 
-    private float SkillBarExistTime = 0, AimBarExistTime = 0;
+    private float SkillBarExistTime = 0;
 
     public bool isPause = false, isBattle = false;
 

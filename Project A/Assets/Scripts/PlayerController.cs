@@ -322,10 +322,15 @@ public class PlayerController : MonoBehaviour
         {
             ySpeed = JumpSpeed;
         }
+
         if (!isGround)
             ySpeed -= 0.4f * Time.deltaTime;
-        else if (ySpeed < 0)
+        else if (ySpeed < -2 * JumpSpeed)
         {
+            if (ySpeed < 0)
+            {
+                PlayerHP -= (int)-4 * ySpeed / JumpSpeed;
+            }
             ySpeed = 0;
         }
 
