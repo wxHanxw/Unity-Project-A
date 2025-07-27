@@ -37,9 +37,9 @@ public class UIController : MonoBehaviour
     public TMP_Text GNum;
 
 
-    public GameObject PausePanel, PackagePanel, InfoPanel, AimInfoPanel, DeadPanel, Player;
+    public GameObject PausePanel, PackagePanel, InfoPanel, AimInfoPanel, DeadPanel, DeadPanelButton, Player;
 
-    public Volume GlobalVolume;
+    private Volume GlobalVolume;
 
     private Vignette vignette;
     public Image AimImage, AimHPImage;
@@ -58,7 +58,7 @@ public class UIController : MonoBehaviour
 
     private Vector3[] SkillUIInitialPosition;
 
-    private float SkillBarExistTime = 0, AimBarExistTime = 0;
+    private float SkillBarExistTime = 0, DeaddeltaTime = 0;
 
     public bool isPause = false, isBattle = false;
 
@@ -84,12 +84,19 @@ public class UIController : MonoBehaviour
             SkillUIInitialPosition[i] = SkillUI[i].transform.position;
             SkillUIVelocity[i] = 0;
         }
+        //需要更新
+        GlobalVolume = GameObject.FindGameObjectWithTag("GlobalVolume").GetComponent<Volume>();
         GlobalVolume.profile.TryGet<Vignette>(out vignette);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (vignette == null)
+        {
+            GlobalVolume = GameObject.FindGameObjectWithTag("GlobalVolume").GetComponent<Volume>();
+            GlobalVolume.profile.TryGet<Vignette>(out vignette);
+        }
         TickdeltaTime += Time.deltaTime;
         if (TickdeltaTime > TickTime)
         {
@@ -99,7 +106,10 @@ public class UIController : MonoBehaviour
             PlayerInfoBarController();
             MapController();
             BagController();
-            PauseController();
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                PauseController();
+            }
             DeadPanelController();
 
             //进入战斗屏幕变红
@@ -131,17 +141,35 @@ public class UIController : MonoBehaviour
     {
         if (Player.GetComponent<PlayerController>().PlayerHP <= 0)
         {
-            DeadPanel.SetActive(true);
-            PackagePanel.SetActive(false);
+            DeaddeltaTime += Time.deltaTime;
             MapCavas.SetActive(false);
             InfoPanel.SetActive(false);
+            PackagePanel.SetActive(false);
+
+            if (DeaddeltaTime > 2 && !DeadPanel.activeSelf)
+            {
+                DeadPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+                DeadPanel.SetActive(true);
+            }
+            if (DeaddeltaTime > 3)
+            {
+                DeadPanelButton.SetActive(true);
+            }
         }
         else if (DeadPanel.activeSelf)
         {
+            DeaddeltaTime = 0;
             DeadPanel.SetActive(false);
+            DeadPanelButton.SetActive(false);
             PackagePanel.SetActive(false);
             MapCavas.SetActive(false);
             InfoPanel.SetActive(true);
+        }
+
+        if (DeadPanel.activeSelf)
+        {
+            if (DeadPanel.GetComponent<Image>().color.a < 0.8f)
+                DeadPanel.GetComponent<Image>().color += new Color(0, 0, 0, 1) * Time.deltaTime;
         }
     }
     private void BagController()
@@ -155,18 +183,14 @@ public class UIController : MonoBehaviour
             InfoPanel.SetActive(!PackagePanel.activeSelf);
         }
     }
-    private void PauseController()
+    public void PauseController()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            isPause = !isPause;
-            PausePanel.SetActive(isPause);
-            PackagePanel.SetActive(false);
-            MapCavas.SetActive(false);
-            InfoPanel.SetActive(!isPause);
-        }
 
-
+        isPause = !isPause;
+        PausePanel.SetActive(isPause);
+        PackagePanel.SetActive(false);
+        MapCavas.SetActive(false);
+        InfoPanel.SetActive(!isPause);
     }
     private void MapController()
     {

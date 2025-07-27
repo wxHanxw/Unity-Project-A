@@ -18,6 +18,12 @@ TagManager:
   - Equipment
   - Cemetery
   - BagSpace
+  - CharacterChoosed
+  - GlobalVolume
+  - DamageFigure
+  - StartSceneController
+  - DontDestroy
+  - PlayerPositioninScene
   layers:
   - Default
   - TransparentFX

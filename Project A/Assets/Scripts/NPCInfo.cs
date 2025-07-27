@@ -60,6 +60,10 @@ public class NPCInfo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Character == null)
+        {
+            Character = GameObject.FindGameObjectWithTag("Character");
+        }
         if (!isDead)
         {
             HPController();

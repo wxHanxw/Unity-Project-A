@@ -8,7 +8,10 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
+using UnityEngine.TextCore.Text;
+
 
 public class PlayerController : MonoBehaviour
 {
@@ -18,10 +21,10 @@ public class PlayerController : MonoBehaviour
     public float RotateSpeed;
     public float JumpSpeed;
 
-
     [HideInInspector]
     public float GetDamage, GetHeal;
     private float RealGetDamage;
+
 
     [HorizontalLine]
     [Header("Basic Information")]
@@ -49,6 +52,7 @@ public class PlayerController : MonoBehaviour
 
     public GameObject TakingItem;
     public TMP_Text ItemNum;
+    public TMP_Text DamageFigure;
 
     private float TakingItemdeltaTime = 0;
 
@@ -79,10 +83,17 @@ public class PlayerController : MonoBehaviour
     [Header("Others")]
     public GameObject Character;
     public GameObject Chooser;
+
     public CinemachineVirtualCamera VirtualCamera;
 
     public GameObject NormalAttack;
     private bool isFarAttack;
+
+    //被攻击显示
+    private float BeAttackedIntervaldeltaTime = 0;
+
+    public GameObject CharacterSprite;
+    private GameObject BeAttackedSprite;
 
     public GameObject CavasUI;
 
@@ -104,12 +115,16 @@ public class PlayerController : MonoBehaviour
     //AI
     private NavMeshAgent CharacterAgent;
 
-
-
+    //记录场景位置
+    private GameObject PlayerPositioninScene;
 
     // Start is called before the first frame update
     void Start()
     {
+        foreach (Transform child in CharacterSprite.transform)
+        {
+            BeAttackedSprite = child.gameObject;
+        }
         isFarAttack = NormalAttack.GetComponent<NormalAttackTrigger>().isFarAttack;
         NormalAttack.GetComponent<NormalAttackTrigger>().Damage = PlayerAttack;
         NormalAttack.GetComponent<NormalAttackTrigger>().Holder = gameObject;
@@ -158,12 +173,25 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //玩家进入场景位置
+        if (PlayerPositioninScene == null)
+        {
+            PlayerPositioninScene = GameObject.FindGameObjectWithTag("PlayerPositioninScene");
+            GetComponent<CharacterController>().enabled = false;
+            GetComponent<NavMeshAgent>().enabled = false;
+            transform.position = PlayerPositioninScene.transform.position;
+            GetComponent<CharacterController>().enabled = true;
+            GetComponent<NavMeshAgent>().enabled = true;
+        }
+
         if (PlayerHP > 0)
         {
             if (CanMove)
             {
                 Move();
-                MouseInteraction();
+                //激活相机后开始鼠标交互
+                if (Camera.main != null)
+                    MouseInteraction();
             }
 
 
@@ -175,6 +203,7 @@ public class PlayerController : MonoBehaviour
             TakingItemControllerSelf();
         }
     }
+
 
 
     private void TakingItemControllerSelf()
@@ -243,14 +272,30 @@ public class PlayerController : MonoBehaviour
     }
     private void HPController()
     {
+
+        if (BeAttackedIntervaldeltaTime <= 0.15f)
+        {
+            BeAttackedIntervaldeltaTime += Time.deltaTime;
+            if (BeAttackedIntervaldeltaTime > 0.15f)
+            {
+                BeAttackedSprite.SetActive(false);
+            }
+        }
         if (GetDamage != 0)
         {
-            RealGetDamage = GetDamage - PlayerDefence;
+            RealGetDamage = (int)(GetDamage - PlayerDefence);
             if (RealGetDamage < 1)
             {
                 RealGetDamage = 1;
             }
+            BeAttackedSprite.SetActive(true);
+            BeAttackedIntervaldeltaTime = 0;
             PlayerHP -= RealGetDamage;
+
+            TMP_Text DamageFigureIns = Instantiate(DamageFigure, transform.position + new Vector3(0, 0.5f, 0), transform.rotation, DamageFigure.transform.parent);
+            DamageFigureIns.text = RealGetDamage.ToString();
+            DamageFigureIns.gameObject.transform.localScale = DamageFigureIns.gameObject.transform.localScale * (1 + 0.1f * math.log(RealGetDamage));
+            DamageFigureIns.gameObject.SetActive(true);
             GetDamage = 0;
         }
         if (PlayerHP <= 0)
@@ -322,10 +367,15 @@ public class PlayerController : MonoBehaviour
         {
             ySpeed = JumpSpeed;
         }
+
         if (!isGround)
             ySpeed -= 0.4f * Time.deltaTime;
-        else if (ySpeed < 0)
+        else if (ySpeed < -2 * JumpSpeed)
         {
+            if (ySpeed < 0)
+            {
+                GetDamage = (int)-4 * ySpeed / JumpSpeed;
+            }
             ySpeed = 0;
         }
 
@@ -365,9 +415,9 @@ public class PlayerController : MonoBehaviour
     //鼠标交互锁定目标，UI显示目标状态
     private void MouseInteraction()
     {
+
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-
         if (Physics.Raycast(ray, out hit))
         {
             if (hit.collider.tag == "ChatUI" && hit.collider.name == "Team")

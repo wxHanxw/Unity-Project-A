@@ -92,6 +92,7 @@ public class NormalAttackTrigger : MonoBehaviour
         if (other.tag == "Enemy" && toEnemy)
         {
             other.gameObject.GetComponent<EnemyInfo>().GetDamage = Damage;
+            other.gameObject.GetComponent<EnemyInfo>().GetDamageHolder = Holder;
             if (isFarAttack)
             {
                 Destroy(gameObject);
