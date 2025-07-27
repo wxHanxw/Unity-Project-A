@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class StartSceneController : MonoBehaviour
 {
-    public Button LButton, RButton;
+    public Button LButton, RButton, NextSceneButton, StartButton, QuitButton, BacktoStartButton;
     private int CharacterIndex = 0;
     public GameObject[] Characters;
+    public GameObject StartPanel, ChoosePanel;
     // Start is called before the first frame update
     void Start()
     {
@@ -21,6 +23,10 @@ public class StartSceneController : MonoBehaviour
 
         LButton.onClick.AddListener(LeftOne);
         RButton.onClick.AddListener(RightOne);
+        NextSceneButton.onClick.AddListener(NextScene);
+        StartButton.onClick.AddListener(StartGame);
+        QuitButton.onClick.AddListener(QuitGame);
+        BacktoStartButton.onClick.AddListener(BacktoStart);
     }
 
     // Update is called once per frame
@@ -55,5 +61,30 @@ public class StartSceneController : MonoBehaviour
         {
             Characters[CharacterIndex].SetActive(true);
         }
+    }
+
+    public void NextScene()
+    {
+
+        DontDestroyOnLoad(Characters[CharacterIndex]);
+        SceneManager.LoadScene(1);
+    }
+
+    public void StartGame()
+    {
+        StartPanel.SetActive(false);
+        ChoosePanel.SetActive(true);
+    }
+
+    public void BacktoStart()
+    {
+        StartPanel.SetActive(true);
+        ChoosePanel.SetActive(false);
+    }
+
+    public void QuitGame()
+    {
+        UnityEditor.EditorApplication.isPlaying = false;
+        Application.Quit();
     }
 }

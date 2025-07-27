@@ -4,7 +4,7 @@ using ExternPropertyAttributes;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
-
+using TMPro;
 public class EnemyInfo : MonoBehaviour
 {
     //basic info
@@ -55,7 +55,7 @@ public class EnemyInfo : MonoBehaviour
     [Header("Attack Models")]
     public GameObject NormalAttack;
 
-
+    private TMP_Text DamageFigure;
 
     private float IdelIntervaldeltaTime = 0, WalkSpeed;
 
@@ -83,6 +83,21 @@ public class EnemyInfo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //更新读取伤害显示
+        if (DamageFigure == null)
+        {
+            DamageFigure = GameObject.FindGameObjectWithTag("DamageFigure").GetComponent<TMP_Text>();
+        }
+
+        if (Canvas == null)
+        {
+            Canvas = GameObject.FindGameObjectWithTag("Canvas");
+        }
+        if (Character == null)
+        {
+            Character = GameObject.FindGameObjectWithTag("Character");
+        }
+
         if (!isDead)
         {
             HPController();
@@ -157,6 +172,9 @@ public class EnemyInfo : MonoBehaviour
 
             EnemyBeAttackedSprite.SetActive(true);
             BeAttackedIntervaldeltaTime = 0;
+            TMP_Text DamageFigureIns = Instantiate(DamageFigure, transform.position + new Vector3(0, 0.5f, 0), transform.rotation, DamageFigure.transform.parent);
+            DamageFigureIns.text = RealGetDamage.ToString();
+            DamageFigureIns.gameObject.SetActive(true);
             if (Character.GetComponent<PlayerController>().HitAim == null || Character.GetComponent<PlayerController>().HitAim.tag != "Enemy")
             {
                 Character.GetComponent<PlayerController>().HitAim = this.gameObject;
@@ -221,7 +239,7 @@ public class EnemyInfo : MonoBehaviour
         }
 
         //攻击附近的敌人
-        if ((transform.position - InitialPosition).magnitude < 4 * IdelMoveRange && (transform.position - Character.transform.position).magnitude < AttackFollowRange)
+        if (Character != null && (transform.position - InitialPosition).magnitude < 4 * IdelMoveRange && (transform.position - Character.transform.position).magnitude < AttackFollowRange)
         {
             isFollowing = true;
             navMeshAgent.speed = MoveSpeed;
