@@ -16,14 +16,12 @@ public class SkillC : MonoBehaviour
 
     public LayerMask targetLayer;
 
-    public float StartRange = 1.5f;
+    public float StartRange = 1f;
     public float FallSpeed = 60f; // 先调大速度
-    public float TrackInterval = 0.5f; // 每个石头追踪的时间间隔
     public float HitDistance = 0.5f; // 技能与敌人触碰造成伤害的距离
     public float MaxExpandRange = 20f; // 石头最远能扩展的范围距离
-    public float TotalTrackTime = 1.0f; // Inspector可调
-
     private Vector3 StartPosition;
+    private float DurationdeltaTime; // 技能持续时间
     //private int Index = 0;
 
     private Transform nearestEnemy;
@@ -31,14 +29,12 @@ public class SkillC : MonoBehaviour
     private bool[] stoneTracking;      // 每个石头是否已开始追踪
     private float skillStartTime;
     private bool hasGenerated = false;
-    private int skillIndex = 0;
     private bool isSkillBlocked = false; // 新增：技能是否被阻挡
 
     void Start()
     {
         StoneIns = new GameObject[NumofStone];
-        stoneActivateTime = new float[NumofStone];
-        stoneTracking = new bool[NumofStone];
+        
         GetComponent<SkillInfo>().isRefresh = true;
     }
 
@@ -48,7 +44,7 @@ public class SkillC : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer))
         {
-            PreSkillRange.transform.position = hit.point + new Vector3(0, 0.1f, 0);
+            PreSkillRange.transform.position = transform.position;
         }
 
         // 刷新技能初值
@@ -58,117 +54,115 @@ public class SkillC : MonoBehaviour
             GetComponent<SkillInfo>().isRefresh = false;
             hasGenerated = false; // 技能刷新时允许再次生成
             isSkillBlocked = false; // 技能刷新时重置阻挡状态
+            nearestEnemy = null; // 初始化最近敌人
+            stoneActivateTime = new float[NumofStone];
+            stoneTracking = new bool[NumofStone];
+            DurationdeltaTime = 0;
 
         }
         GetComponent<SkillInfo>().isPre = PreSkillRange.activeSelf;
 
-
-        // 技能释放时只生成一次石头
-        if (GetComponent<SkillInfo>().isPre && !hasGenerated && !isSkillBlocked)
+       // 技能释放时只生成一次石头
+        if (PreSkillRange.activeSelf)
         {
-            if (skillIndex == 0)
-            {
-                skillIndex++;
-            }
-            else
-            {
-                nearestEnemy = FindNearestEnemy();
-                float preSkillRangeRadius = PreSkillRange.transform.localScale.x / 2f;
-                float distToPlayer = nearestEnemy != null ? Vector3.Distance(transform.position, nearestEnemy.position) : float.MaxValue;
-
-                hasGenerated = true;
-                if (PreSkillRange != null) PreSkillRange.SetActive(false);
-                StartPosition = transform.position; // 以角色为中心
-                skillStartTime = Time.time;
-                Debug.Log($"[{Time.time:F2}] 技能释放，开始生成石头");
-
-                // 距离判定，决定是否允许追踪
-                bool canTrack = (nearestEnemy != null && distToPlayer <= preSkillRangeRadius);
-                GenerateStones();
-
-                for (int i = 0; i < stoneTracking.Length; i++)
-                {
-                    stoneTracking[i] = canTrack;
-                }
-                if (!canTrack)
-                {
-                    Debug.Log("超出施法距离，没有选中目标，但技能依然释放");
-                }
-            }
+            //if (skillIndex == 0)
+            //{
+            //    skillIndex++;
+            //}
+            //else
+            nearestEnemy = FindNearestEnemy();
+            StartPosition = PreSkillRange.transform.position; // 以角色为中心
+            skillStartTime = Time.time;
+            Debug.Log($"[{Time.time:F2}] 技能释放，开始生成石头");
+            if (PreSkillRange != null) PreSkillRange.SetActive(false);
+            hasGenerated = true;
+            GenerateStones();
         }
-
-        // 技能释放后，才允许石头追踪敌人
-        if (hasGenerated)
+        if (!PreSkillRange.activeSelf && hasGenerated && !isSkillBlocked)
         {
-            TrackStones();
+            DurationdeltaTime = Time.time - skillStartTime;
+            if (DurationdeltaTime <= GetComponent<SkillInfo>().Duration)
+            {
+                TrackStones(); // 传递当前石头到追踪函数
+                //DurationdeltaTime += Time.deltaTime;
+                
+            } else
+        {
+            // 如果数组为空或null，禁用游戏对象
+            gameObject.SetActive(false);
+        }
         }
     }
 
     // 新增：石头追踪敌人逻辑封装为函数
     void TrackStones()
     {
+        float trackInterval = GetComponent<SkillInfo>().Duration / NumofStone; // 每个石头追踪的时间间隔
+        float preSkillRangeRadius = PreSkillRange.transform.localScale.x / 2f;
         for (int i = 0; i < StoneIns.Length; i++)
         {
             if (StoneIns[i] != null)
             {
-                // 未激活追踪的石头始终跟随玩家移动
-                if (!stoneTracking[i])
+                float distToPlayer = nearestEnemy != null ? Vector3.Distance(StoneIns[i].transform.position, nearestEnemy.position) : float.MaxValue;
+                bool canTrack = (nearestEnemy != null && distToPlayer <= preSkillRangeRadius);
+                stoneTracking[i] = canTrack;
+                // 追踪逻辑
+                if (Time.time - stoneActivateTime[i] < trackInterval-0.01)
                 {
-                    float angle = (2 * Mathf.PI / NumofStone) * i;
-                    Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * StartRange;
-                    Vector3 stonePos = new Vector3(
-                        transform.position.x + offset.x,
-                        transform.position.y,
-                        transform.position.z + offset.z
-                    );
-                    StoneIns[i].transform.position = stonePos;
-                }
-                else
-                {
-                    // 追踪逻辑
-                    if (Time.time > stoneActivateTime[i])
+                    Debug.Log($"石头{i} 追踪时间未到，当前已追踪: {Time.time - stoneActivateTime[i]:F2}秒");
+                    // 未激活追踪的石头始终跟随玩家移动
+                    if (!stoneTracking[i])
                     {
-                        if (nearestEnemy == null)
+                        float angle = (2 * Mathf.PI / NumofStone) * i;
+                        Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * StartRange;
+                        Vector3 stonePos = new Vector3(
+                            transform.position.x + offset.x,
+                            transform.position.y,
+                            transform.position.z + offset.z
+                        );
+                        StoneIns[i].transform.position = stonePos;
+                        if (i==4) Debug.Log($"石头{i} 位置: {stonePos},角色位置: {transform.position}");
+                    }else
+                    {
+                        if (nearestEnemy)
+                        {
+                            Vector3 toEnemy = (nearestEnemy.position - StoneIns[i].transform.position).normalized;
+                            StoneIns[i].transform.position += toEnemy * FallSpeed * Time.deltaTime;
+                            float dist3D = Vector3.Distance(StoneIns[i].transform.position, nearestEnemy.position);
+                            Vector3 stoneXZ = new Vector3(StoneIns[i].transform.position.x, 0, StoneIns[i].transform.position.z);
+                            Vector3 enemyXZ = new Vector3(nearestEnemy.position.x, 0, nearestEnemy.position.z);
+                            float distXZ = Vector3.Distance(stoneXZ, enemyXZ);
+                            Debug.Log($"石头{i} 距离敌人: 3D={dist3D:F2}, XZ={distXZ:F2}");
+
+                            // 命中销毁（采用XZ平面距离）
+                            if (distXZ < HitDistance)
+                            {
+                                Debug.Log($"石头{i} XZ命中敌人，已销毁");
+                                EnemyInfo enemyInfo = nearestEnemy.GetComponent<EnemyInfo>();
+                                if (enemyInfo != null)
+                                {
+                                    enemyInfo.GetDamage = GetComponent<SkillInfo>().Damage;
+                                }
+                                Destroy(StoneIns[i]);
+                                StoneIns[i] = null;
+                            }else if (Vector3.Distance(transform.position, StoneIns[i].transform.position) > MaxExpandRange)// 超出最大攻击距离则销毁
+                            {
+                                Destroy(StoneIns[i]);
+                                StoneIns[i] = null;
+                                Debug.Log($"石头{i} 超出最大攻击距离({MaxExpandRange})，自动销毁");
+                            }
+                        }else
                         {
                             Debug.Log($"石头{i} 追踪时 nearestEnemy 为空，无法追踪");
                             continue;
                         }
-                        Vector3 toEnemy = (nearestEnemy.position - StoneIns[i].transform.position).normalized;
-                        StoneIns[i].transform.position += toEnemy * FallSpeed * Time.deltaTime;
-
-                        float dist3D = Vector3.Distance(StoneIns[i].transform.position, nearestEnemy.position);
-                        Vector3 stoneXZ = new Vector3(StoneIns[i].transform.position.x, 0, StoneIns[i].transform.position.z);
-                        Vector3 enemyXZ = new Vector3(nearestEnemy.position.x, 0, nearestEnemy.position.z);
-                        float distXZ = Vector3.Distance(stoneXZ, enemyXZ);
-                        Debug.Log($"石头{i} 距离敌人: 3D={dist3D:F2}, XZ={distXZ:F2}");
-
-                        // 命中销毁（采用XZ平面距离）
-                        if (distXZ < HitDistance)
-                        {
-                            Debug.Log($"石头{i} XZ命中敌人，已销毁");
-                            EnemyInfo enemyInfo = nearestEnemy.GetComponent<EnemyInfo>();
-                            if (enemyInfo != null)
-                            {
-                                enemyInfo.GetDamage = GetComponent<SkillInfo>().Damage;
-                            }
-                            Destroy(StoneIns[i]);
-                            StoneIns[i] = null;
-                        }
+                        
                     }
-                }
-                // 超时销毁
-                if (StoneIns[i] != null && Time.time - stoneActivateTime[i] > TrackInterval)
+                }else
                 {
                     Destroy(StoneIns[i]);
                     StoneIns[i] = null;
                     Debug.Log($"石头{i} 超时未命中，自动销毁");
-                }
-                // 超出最大攻击距离则销毁
-                if (StoneIns[i] != null && Vector3.Distance(transform.position, StoneIns[i].transform.position) > MaxExpandRange)
-                {
-                    Destroy(StoneIns[i]);
-                    StoneIns[i] = null;
-                    Debug.Log($"石头{i} 超出最大攻击距离({MaxExpandRange})，自动销毁");
                 }
             }
         }
@@ -200,7 +194,7 @@ public class SkillC : MonoBehaviour
 
     void GenerateStones()
     {
-        float trackInterval = TotalTrackTime / NumofStone;
+        float trackInterval = GetComponent<SkillInfo>().Duration / NumofStone; // 每个石头追踪的时间间隔
         for (int i = 0; i < NumofStone; i++)
         {
             float angle = (2 * Mathf.PI / NumofStone) * i;
