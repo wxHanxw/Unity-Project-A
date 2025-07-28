@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 
-public class SkillSheep : MonoBehaviour
+public class 变羊术 : MonoBehaviour
 {
     private float Damage;
     private GameObject Player, AimEnemy, SheepIns;

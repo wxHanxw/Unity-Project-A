@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class 奥数飞弹 : MonoBehaviour
+public class 奥术飞弹 : MonoBehaviour
 {
     public GameObject PreSkillRange;
     public GameObject StoneSample;
@@ -31,7 +31,7 @@ public class 奥数飞弹 : MonoBehaviour
     private bool hasGenerated = false;
     private bool isSkillBlocked = false; // 新增：技能是否被阻挡
     // 旋转速度（弧度/秒）
-    private float rotationSpeed = 1f; // 修改为每秒旋转15度
+    private float rotationSpeed = 2f; // 修改为每秒旋转15度
     // 累计旋转角度
     private float currentRotation = 0f;
 
@@ -88,23 +88,28 @@ public class 奥数飞弹 : MonoBehaviour
             DurationdeltaTime = Time.time - skillStartTime;
             if (DurationdeltaTime <= GetComponent<SkillInfo>().Duration)
             {
-                TrackStones(); // 传递当前石头到追踪函数
-                //DurationdeltaTime += Time.deltaTime;
-                
-            } else
+                for (int i = 0; i < StoneIns.Length; i++)
+                {       
+                    if (StoneIns[i] != null){
+                        TrackStones(i); // 传递当前石头到追踪函数
+                        //DurationdeltaTime += Time.deltaTime;
+                        break;
+                    }
+                }
+            }
+        }else
         {
             // 如果数组为空或null，禁用游戏对象
             gameObject.SetActive(false);
         }
-        }
     }
 
     // 新增：石头追踪敌人逻辑封装为函数
-    void TrackStones()
+    void TrackStones(int i)
     {
         float trackInterval = GetComponent<SkillInfo>().Duration / NumofStone; // 每个石头追踪的时间间隔
         float preSkillRangeRadius = PreSkillRange.transform.localScale.x / 2f;
-        for (int i = 0; i < StoneIns.Length; i++)
+        
         {
             if (StoneIns[i] != null)
             {
@@ -114,10 +119,12 @@ public class 奥数飞弹 : MonoBehaviour
                 // 追踪逻辑
                 if (Time.time - stoneActivateTime[i] < trackInterval-0.01)
                 {
-                    Debug.Log($"石头{i} 追踪时间未到，当前已追踪: {Time.time - stoneActivateTime[i]:F2}秒");
+                    //Debug.Log($"石头{i} 开始追踪敌人,stoneactivateTime={stoneActivateTime[i]:F2}, 当前时间={Time.time:F2}");
+                    
                     // 未激活追踪的石头始终跟随玩家移动
                     if (!stoneTracking[i])
                     {
+                        Debug.Log($"石头{i} 追踪时间未到，当前已追踪: {Time.time - stoneActivateTime[i]:F2}秒");
                         //float angle = (2 * Mathf.PI / NumofStone) * i;
                         //Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * StartRange;
                         //Vector3 stonePos = new Vector3(
@@ -126,25 +133,26 @@ public class 奥数飞弹 : MonoBehaviour
                         //    transform.position.z + offset.z
                         //);
                         //StoneIns[i].transform.position = stonePos;
-
+                        Vector3 toEnemy = (nearestEnemy.position - StoneIns[i].transform.position).normalized;
                         // 更新总旋转角度（每帧调用时累加）
                         currentRotation += rotationSpeed * Time.deltaTime;
                     
                             // 核心修改：在原有角度基础上叠加旋转角度
-                            float angle = (2 * Mathf.PI / NumofStone) * i + currentRotation;
+                            //float angle = (2 * Mathf.PI / NumofStone) * i + currentRotation;
                             
                             // 以下是原代码，保持不变
-                            Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * StartRange;
+                            //Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * StartRange;
                             Vector3 stonePos = new Vector3(
-                                transform.position.x + offset.x,
+                                transform.position.x + toEnemy.x *StartRange,
                                 transform.position.y,
-                                transform.position.z + offset.z
+                                transform.position.z + toEnemy.z * StartRange
                             );
                             StoneIns[i].transform.position = stonePos;
                     }else
                     {
-                        if (nearestEnemy)
+                        if (nearestEnemy )// 追踪时间未到
                         {
+                            Debug.Log($"石头{i} 开始追踪敌人,stoneactivateTime={stoneActivateTime[i]:F2}, 当前时间={Time.time:F2}");
                             Vector3 toEnemy = (nearestEnemy.position - StoneIns[i].transform.position).normalized;
                             StoneIns[i].transform.position += toEnemy * FallSpeed * Time.deltaTime;
                             float dist3D = Vector3.Distance(StoneIns[i].transform.position, nearestEnemy.position);
@@ -163,17 +171,40 @@ public class 奥数飞弹 : MonoBehaviour
                                     enemyInfo.GetDamage = GetComponent<SkillInfo>().Damage;
                                 }
                                 Destroy(StoneIns[i]);
+                                if(i == StoneIns.Length-1)
+                                {
+                                    hasGenerated = false;
+                                }
                                 StoneIns[i] = null;
                             }else if (Vector3.Distance(transform.position, StoneIns[i].transform.position) > MaxExpandRange)// 超出最大攻击距离则销毁
                             {
                                 Destroy(StoneIns[i]);
                                 StoneIns[i] = null;
                                 Debug.Log($"石头{i} 超出最大攻击距离({MaxExpandRange})，自动销毁");
+                                if(i == StoneIns.Length-1)
+                                {
+                                    hasGenerated = false;
+                                }
                             }
                         }else
                         {
-                            Debug.Log($"石头{i} 追踪时 nearestEnemy 为空，无法追踪");
-                            continue;
+                            //Debug.Log($"石头{i} 追踪时 nearestEnemy 为空，无法追踪");
+                            Vector3 toEnemy = (nearestEnemy.position - StoneIns[i].transform.position).normalized;
+                        // 更新总旋转角度（每帧调用时累加）
+                        currentRotation += rotationSpeed * Time.deltaTime;
+                    
+                            // 核心修改：在原有角度基础上叠加旋转角度
+                            //float angle = (2 * Mathf.PI / NumofStone) * i + currentRotation;
+                            
+                            // 以下是原代码，保持不变
+                            //Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * StartRange;
+                            Vector3 stonePos = new Vector3(
+                                transform.position.x + toEnemy.x *StartRange,
+                                transform.position.y,
+                                transform.position.z + toEnemy.z * StartRange
+                            );
+                            StoneIns[i].transform.position = stonePos;
+                            //continue;
                         }
                         
                     }
@@ -182,6 +213,10 @@ public class 奥数飞弹 : MonoBehaviour
                     Destroy(StoneIns[i]);
                     StoneIns[i] = null;
                     Debug.Log($"石头{i} 超时未命中，自动销毁");
+                    if(i == StoneIns.Length-1)
+                    {
+                        hasGenerated = false;
+                    }
                 }
             }
         }
@@ -219,9 +254,9 @@ public class 奥数飞弹 : MonoBehaviour
             float angle = (2 * Mathf.PI / NumofStone) * i;
             Vector3 offset = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * StartRange;
             Vector3 stonePos = new Vector3(
-                StartPosition.x + offset.x,
+                StartPosition.x+1000f,
                 StartPosition.y,
-                StartPosition.z + offset.z
+                StartPosition.z
             );
             StoneIns[i] = Instantiate(StoneSample, stonePos, StoneSample.transform.rotation);
             stoneActivateTime[i] = skillStartTime + i * trackInterval;

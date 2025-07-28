@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class SkillE : MonoBehaviour
+public class 恢复光环 : MonoBehaviour
 {
     public float HealAmount = 1f; // 每次回血量，可在Inspector调节
     public float HealInterval = 0.5f; // 回血间隔，可在Inspector调节

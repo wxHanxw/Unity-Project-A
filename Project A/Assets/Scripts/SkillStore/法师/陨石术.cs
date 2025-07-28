@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class SkillSnowstorm : MonoBehaviour
+public class 陨石术 : MonoBehaviour
 {
     public GameObject PreSkillRange;
     public GameObject StoneSample;
@@ -17,8 +17,8 @@ public class SkillSnowstorm : MonoBehaviour
     public LayerMask targetLayer;
 
     private float[] StartTime;
+
     private float StartTimedeltaTime, DurationdeltaTime = 0;
-    public float StartRange = 2;
     public float FallSpeed = 1;
 
     private Vector3 StartPosition;
@@ -59,9 +59,8 @@ public class SkillSnowstorm : MonoBehaviour
         {
             PreSkillRange.SetActive(true);
             StartTimedeltaTime = 0;
-
-            DurationdeltaTime = 0;
             GetComponent<SkillInfo>().isRefresh = false;
+            DurationdeltaTime = 0;
         }
 
 
@@ -85,11 +84,7 @@ public class SkillSnowstorm : MonoBehaviour
                     {
                         if (Index == i && StoneIns[Index] == null)
                         {
-                            System.Random randomR = new System.Random();
-                            float Radius = (float)randomR.NextDouble() * StartRange;
-                            System.Random randomA = new System.Random();
-                            float Angle = (float)randomA.NextDouble() * 2 * (float)Math.PI;
-                            StoneIns[i] = Instantiate(StoneSample, StartPosition + new Vector3((float)Radius * math.sin(Angle), 0, (float)Radius * math.cos(Angle)), StoneSample.transform.rotation);
+                            StoneIns[i] = Instantiate(StoneSample, StartPosition, StoneSample.transform.rotation);
                             Index += 1;
                         }
                         if (StoneIns[i] != null)
@@ -104,7 +99,6 @@ public class SkillSnowstorm : MonoBehaviour
                 gameObject.SetActive(false);
             }
         }
-
 
     }
 
