@@ -8,10 +8,12 @@ using UnityEngine;
 public class 魔法飞弹 : MonoBehaviour
 {
     public GameObject PreSkillRange;
+    public GameObject SkillRange;
     public GameObject StoneSample;
+    public GameObject find;
 
     public GameObject[] StoneIns;
-    public Vector3 FallDirection = new Vector3(0, 0, 0);
+    //public Vector3 FallDirection = new Vector3(0, 0, 0);
     public int NumofStone = 5;
 
     public LayerMask targetLayer;
@@ -38,8 +40,8 @@ public class 魔法飞弹 : MonoBehaviour
     void Start()
     {
         StoneIns = new GameObject[NumofStone];
-        
         GetComponent<SkillInfo>().isRefresh = true;
+        PreSkillRange.transform.position = transform.position; // 初始化预技能范围的位置
     }
 
     void Update()
@@ -55,6 +57,7 @@ public class 魔法飞弹 : MonoBehaviour
         if (GetComponent<SkillInfo>().isRefresh)
         {
             PreSkillRange.SetActive(true);
+            SkillRange.SetActive(false);
             GetComponent<SkillInfo>().isRefresh = false;
             hasGenerated = false; // 技能刷新时允许再次生成
             isSkillBlocked = false; // 技能刷新时重置阻挡状态
@@ -76,6 +79,7 @@ public class 魔法飞弹 : MonoBehaviour
             //}
             //else
             nearestEnemy = FindNearestEnemy();
+            //PreSkillRange.transform.position = transform.position;
             StartPosition = PreSkillRange.transform.position; // 以角色为中心
             skillStartTime = Time.time;
             Debug.Log($"[{Time.time:F2}] 技能释放，开始生成石头");
@@ -85,6 +89,13 @@ public class 魔法飞弹 : MonoBehaviour
         }
         if (!PreSkillRange.activeSelf && hasGenerated && !isSkillBlocked)
         {
+            SkillRange.SetActive(true);
+                SkillRange.transform.position = transform.position;
+                Vector3 scale= new Vector3();
+                scale.y = PreSkillRange.transform.localScale.x /2f; // 保持Y轴不变
+                scale.z =   PreSkillRange.transform.localScale.x / 2f; // 
+                scale.x = PreSkillRange.transform.localScale.x / 2f; // 
+                SkillRange.transform.localScale = scale;
             DurationdeltaTime = Time.time - skillStartTime;
             if (DurationdeltaTime <= GetComponent<SkillInfo>().Duration)
             {
@@ -109,13 +120,14 @@ public class 魔法飞弹 : MonoBehaviour
             if (StoneIns[i] != null)
             {
                 float distToPlayer = nearestEnemy != null ? Vector3.Distance(StoneIns[i].transform.position, nearestEnemy.position) : float.MaxValue;
-                bool canTrack = (nearestEnemy != null && distToPlayer <= preSkillRangeRadius);
+                bool canTrack = (nearestEnemy != null && distToPlayer <= preSkillRangeRadius && Time.time - stoneActivateTime[i] >0f);
                 stoneTracking[i] = canTrack;
                 // 追踪逻辑
                 if (Time.time - stoneActivateTime[i] < trackInterval-0.01)
                 {
-                    Debug.Log($"石头{i} 追踪时间未到，当前已追踪: {Time.time - stoneActivateTime[i]:F2}秒");
+                    //Debug.Log($"石头{i} 追踪时间未到，当前已追踪: {Time.time - stoneActivateTime[i]:F2}秒");
                     // 未激活追踪的石头始终跟随玩家移动
+                    Debug.Log($"石头{i} 是否激活追踪: {stoneTracking[i]}, 当前已追踪: {Time.time - stoneActivateTime[i]:F2}秒");
                     if (!stoneTracking[i])
                     {
                         //float angle = (2 * Mathf.PI / NumofStone) * i;
@@ -141,6 +153,7 @@ public class 魔法飞弹 : MonoBehaviour
                                 transform.position.z + offset.z
                             );
                             StoneIns[i].transform.position = stonePos;
+                            //Debug.Log($"石头{i} 未激活追踪，跟随玩家移动，当前总旋转角度: {currentRotation:F2} 弧度,位置: {stonePos}");
                     }else
                     {
                         if (nearestEnemy)
@@ -164,7 +177,7 @@ public class 魔法飞弹 : MonoBehaviour
                                 }
                                 Destroy(StoneIns[i]);
                                 StoneIns[i] = null;
-                            }else if (Vector3.Distance(transform.position, StoneIns[i].transform.position) > MaxExpandRange)// 超出最大攻击距离则销毁
+                            }else if (Vector3.Distance(nearestEnemy.position, StoneIns[i].transform.position) > MaxExpandRange)// 超出最大攻击距离则销毁
                             {
                                 Destroy(StoneIns[i]);
                                 StoneIns[i] = null;
@@ -190,24 +203,43 @@ public class 魔法飞弹 : MonoBehaviour
     // 查找最近的“Enemy”对象
     Transform FindNearestEnemy()
     {
+        //Debug.Log($"找到了角色状态" + stats);
         Transform enemiesParent = GameObject.Find("Enemies")?.transform;
-        if (enemiesParent == null) return null;
+        
+        if (enemiesParent == null) 
+        {
+            Debug.Log("未找到敌人父对象");
+            return null; 
+            
+        }
 
         float minDist = Mathf.Infinity;
         Transform nearest = null;
         foreach (Transform child in enemiesParent)
         {
-            float dist = Vector3.Distance(transform.position, child.position);
-            if (dist < minDist)
+            if (find.activeSelf)
             {
-                minDist = dist;
-                nearest = child;
+                float distance = Vector3.Distance(find.transform.position, child.transform.position);
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    nearest = child;
+                }
+            }
+            else
+            {
+                float dist = Vector3.Distance(transform.position, child.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearest = child;
+                }
             }
         }
         if (nearest != null)
-            Debug.Log($"最近敌人位置: {nearest.position}");
+            {Debug.Log($"最近敌人位置: {nearest.position}");}
         else
-            Debug.Log("未找到敌人");
+            {Debug.Log("未找到敌人");}
         return nearest;
     }
 
