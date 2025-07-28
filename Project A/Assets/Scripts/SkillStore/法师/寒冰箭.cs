@@ -8,7 +8,9 @@ using UnityEngine;
 public class 寒冰箭 : MonoBehaviour
 {
     public GameObject PreSkillRange;
+    public GameObject SkillRange;
     public GameObject StoneSample;
+    public GameObject find;
 
     public GameObject[] StoneIns;
     public Vector3 FallDirection = new Vector3(0, 0, 0);
@@ -55,6 +57,7 @@ public class 寒冰箭 : MonoBehaviour
         if (GetComponent<SkillInfo>().isRefresh)
         {
             PreSkillRange.SetActive(true);
+            SkillRange.SetActive(false);
             GetComponent<SkillInfo>().isRefresh = false;
             hasGenerated = false; // 技能刷新时允许再次生成
             isSkillBlocked = false; // 技能刷新时重置阻挡状态
@@ -76,19 +79,23 @@ public class 寒冰箭 : MonoBehaviour
             //    skillIndex++;
             //}
             //else
-            nearestEnemy = FindNearestEnemy();
+            nearestEnemy = FindNearestEnemy(); // 查找最近敌人
             StartPosition = PreSkillRange.transform.position; // 以角色为中心
             skillStartTime = Time.time;
             Debug.Log($"[{Time.time:F2}] 技能释放，开始生成石头");
             if (PreSkillRange != null) PreSkillRange.SetActive(false);
             hasGenerated = true;
-            
-            
             GenerateStones();
         }
         if (!PreSkillRange.activeSelf && hasGenerated && !isSkillBlocked)
         {
-            
+            SkillRange.SetActive(true);
+                SkillRange.transform.position = transform.position;
+                Vector3 scale= new Vector3();
+                scale.y = PreSkillRange.transform.localScale.x ; // 保持Y轴不变
+                scale.z =   PreSkillRange.transform.localScale.x ; // 
+                scale.x = PreSkillRange.transform.localScale.x ; // 
+                SkillRange.transform.localScale = scale;
             DurationdeltaTime = Time.time - skillStartTime;
             if (DurationdeltaTime <= GetComponent<SkillInfo>().Duration
             )
@@ -115,7 +122,7 @@ public class 寒冰箭 : MonoBehaviour
             Vector3 enemyXZ = new Vector3(nearestEnemy.position.x, 0, nearestEnemy.position.z);
             if (StoneIns[i] != null)
             {
-                float distToPlayer = nearestEnemy != null ? Vector3.Distance(StoneIns[i].transform.position, nearestEnemy.position) : float.MaxValue;
+                float distToPlayer = nearestEnemy != null ? Vector3.Distance(transform.position, nearestEnemy.position) : float.MaxValue;
                 bool canTrack = (nearestEnemy != null && distToPlayer <= preSkillRangeRadius);
                 stoneTracking[i] = canTrack;
                 // 追踪逻辑
@@ -211,26 +218,37 @@ public class 寒冰箭 : MonoBehaviour
     // 查找最近的“Enemy”对象
     Transform FindNearestEnemy()
     {
-        GameObject[] character = GameObject.FindGameObjectsWithTag("Character");
-            PlayerController stats = character[0].GetComponent<PlayerController>(); // 获取角色状态
-            //Debug.Log($"找到了角色状态" + stats);
-            if (stats.Chooser != null)
-            {
-                //Debug.Log("找到了HitUIAim");
-                return  stats.Chooser.transform;
-            }
+        //Debug.Log($"找到了角色状态" + stats);
         Transform enemiesParent = GameObject.Find("Enemies")?.transform;
-        if (enemiesParent == null) return null;
-    
+        
+        if (enemiesParent == null) 
+        {
+            Debug.Log("未找到敌人父对象");
+            return null; 
+            
+        }
+
         float minDist = Mathf.Infinity;
         Transform nearest = null;
         foreach (Transform child in enemiesParent)
         {
-            float dist = Vector3.Distance(transform.position, child.position);
-            if (dist < minDist)
+            if (find.activeSelf)
             {
-                minDist = dist;
-                nearest = child;
+                float distance = Vector3.Distance(find.transform.position, child.transform.position);
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    nearest = child;
+                }
+            }
+            else
+            {
+                float dist = Vector3.Distance(transform.position, child.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearest = child;
+                }
             }
         }
         if (nearest != null)

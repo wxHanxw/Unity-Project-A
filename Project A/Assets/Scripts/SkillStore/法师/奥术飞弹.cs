@@ -8,7 +8,9 @@ using UnityEngine;
 public class 奥术飞弹 : MonoBehaviour
 {
     public GameObject PreSkillRange;
+    public GameObject SkillRange;
     public GameObject StoneSample;
+    public GameObject find;
 
     public GameObject[] StoneIns;
     public Vector3 FallDirection = new Vector3(0, 0, 0);
@@ -17,7 +19,7 @@ public class 奥术飞弹 : MonoBehaviour
     public LayerMask targetLayer;
 
     public float StartRange = 1f;
-    public float FallSpeed = 60f; // 先调大速度
+    public float FallSpeed = 10f; // 先调大速度
     public float HitDistance = 0.5f; // 技能与敌人触碰造成伤害的距离
     public float MaxExpandRange = 20f; // 石头最远能扩展的范围距离
     private Vector3 StartPosition;
@@ -55,6 +57,7 @@ public class 奥术飞弹 : MonoBehaviour
         if (GetComponent<SkillInfo>().isRefresh)
         {
             PreSkillRange.SetActive(true);
+            SkillRange.SetActive(false);
             GetComponent<SkillInfo>().isRefresh = false;
             hasGenerated = false; // 技能刷新时允许再次生成
             isSkillBlocked = false; // 技能刷新时重置阻挡状态
@@ -75,7 +78,7 @@ public class 奥术飞弹 : MonoBehaviour
             //    skillIndex++;
             //}
             //else
-            nearestEnemy = FindNearestEnemy();
+            
             StartPosition = PreSkillRange.transform.position; // 以角色为中心
             skillStartTime = Time.time;
             Debug.Log($"[{Time.time:F2}] 技能释放，开始生成石头");
@@ -85,17 +88,19 @@ public class 奥术飞弹 : MonoBehaviour
         }
         if (!PreSkillRange.activeSelf && hasGenerated && !isSkillBlocked)
         {
+            nearestEnemy = FindNearestEnemy();
+            SkillRange.SetActive(true);
+                SkillRange.transform.position = transform.position;
+                Vector3 scale= new Vector3();
+                scale.y = PreSkillRange.transform.localScale.x /2f; // 保持Y轴不变
+                scale.z =   PreSkillRange.transform.localScale.x / 2f; // 
+                scale.x = PreSkillRange.transform.localScale.x / 2f; // 
+                SkillRange.transform.localScale = scale;
+
             DurationdeltaTime = Time.time - skillStartTime;
             if (DurationdeltaTime <= GetComponent<SkillInfo>().Duration)
             {
-                for (int i = 0; i < StoneIns.Length; i++)
-                {       
-                    if (StoneIns[i] != null){
-                        TrackStones(i); // 传递当前石头到追踪函数
-                        //DurationdeltaTime += Time.deltaTime;
-                        break;
-                    }
-                }
+                TrackStones(); // 传递当前石头到追踪函数
             }
         }else
         {
@@ -105,16 +110,16 @@ public class 奥术飞弹 : MonoBehaviour
     }
 
     // 新增：石头追踪敌人逻辑封装为函数
-    void TrackStones(int i)
+    void TrackStones()
     {
         float trackInterval = GetComponent<SkillInfo>().Duration / NumofStone; // 每个石头追踪的时间间隔
         float preSkillRangeRadius = PreSkillRange.transform.localScale.x / 2f;
-        
+        for (int i = 0; i < StoneIns.Length; i++)
         {
             if (StoneIns[i] != null)
             {
                 float distToPlayer = nearestEnemy != null ? Vector3.Distance(StoneIns[i].transform.position, nearestEnemy.position) : float.MaxValue;
-                bool canTrack = (nearestEnemy != null && distToPlayer <= preSkillRangeRadius);
+                bool canTrack = (nearestEnemy != null && distToPlayer <= preSkillRangeRadius && Time.time - stoneActivateTime[i] >0);
                 stoneTracking[i] = canTrack;
                 // 追踪逻辑
                 if (Time.time - stoneActivateTime[i] < trackInterval-0.01)
@@ -225,29 +230,49 @@ public class 奥术飞弹 : MonoBehaviour
     // 查找最近的“Enemy”对象
     Transform FindNearestEnemy()
     {
+        //Debug.Log($"找到了角色状态" + stats);
         Transform enemiesParent = GameObject.Find("Enemies")?.transform;
-        if (enemiesParent == null) return null;
+        
+        if (enemiesParent == null) 
+        {
+            Debug.Log("未找到敌人父对象");
+            return null; 
+            
+        }
 
         float minDist = Mathf.Infinity;
         Transform nearest = null;
         foreach (Transform child in enemiesParent)
         {
-            float dist = Vector3.Distance(transform.position, child.position);
-            if (dist < minDist)
+            if (find.activeSelf)
             {
-                minDist = dist;
-                nearest = child;
+                float distance = Vector3.Distance(find.transform.position, child.transform.position);
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    nearest = child;
+                }
+            }
+            else
+            {
+                float dist = Vector3.Distance(transform.position, child.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearest = child;
+                }
             }
         }
         if (nearest != null)
-            Debug.Log($"最近敌人位置: {nearest.position}");
+            {Debug.Log($"最近敌人位置: {nearest.position}");}
         else
-            Debug.Log("未找到敌人");
+            {Debug.Log("未找到敌人");}
         return nearest;
     }
 
     void GenerateStones()
     {
+        
         float trackInterval = GetComponent<SkillInfo>().Duration / NumofStone; // 每个石头追踪的时间间隔
         for (int i = 0; i < NumofStone; i++)
         {
