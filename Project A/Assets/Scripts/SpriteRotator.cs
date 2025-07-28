@@ -23,6 +23,6 @@ public class SpriteRotator : MonoBehaviour
         if (Camera == null)
             Camera = GameObject.FindGameObjectWithTag("MainCamera");
         else
-            transform.eulerAngles = new Vector3(Camera.transform.eulerAngles.x - 25, Camera.transform.eulerAngles.y, transform.eulerAngles.z);
+            transform.eulerAngles = new Vector3(Camera.transform.eulerAngles.x - 17, Camera.transform.eulerAngles.y, transform.eulerAngles.z);
     }
 }

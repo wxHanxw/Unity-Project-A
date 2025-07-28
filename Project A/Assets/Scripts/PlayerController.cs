@@ -399,8 +399,11 @@ public class PlayerController : MonoBehaviour
         {
             float newSizey = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y += -scroll * 2f;
             float newSizez = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z += scroll * 2f;
+            float newComposer= VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y += -scroll * 0.4f;
             VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSizey, 5, 15);
             VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z = Mathf.Clamp(newSizez, -20, -10);
+            VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y = Mathf.Clamp(newComposer, 0, 2);
+
         }
 
         if (CharacterController.enabled)

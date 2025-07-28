@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: e8375c2f479b6477eb87a474e1ee4c66
+guid: a652ebf4fcbfb4b0a803332bcfb9b8ef
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -95,7 +95,70 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: Wheat_0
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 288
+        width: 274
+        height: 1476
+      alignment: 9
+      pivot: {x: 0.509045, y: 0.0046594306}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4c8a0c3b7ca14af7a8fc0d0eff84316
+      internalID: 401967524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Wheat_1
+      rect:
+        serializedVersion: 2
+        x: 823
+        y: 281
+        width: 358
+        height: 1632
+      alignment: 9
+      pivot: {x: 0.5612411, y: 0.011012146}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96734d9aff44b457e8e1b81d74a7da76
+      internalID: 1875036411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Wheat_2
+      rect:
+        serializedVersion: 2
+        x: 1483
+        y: 288
+        width: 278
+        height: 1480
+      alignment: 9
+      pivot: {x: 0.5654297, y: 0.009930173}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c325445de8fb420d97e7e9ff323e68e
+      internalID: -494357177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -106,7 +169,10 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Wheat_0: 401967524
+      Wheat_1: 1875036411
+      Wheat_2: -494357177
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
