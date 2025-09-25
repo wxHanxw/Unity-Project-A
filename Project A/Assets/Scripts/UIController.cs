@@ -19,6 +19,7 @@ public class UIController : MonoBehaviour
     [Header("Player UI")]
     public Image PlayerHPImage;
     public Image PlayerMPImage;
+    public Image PlayerArmorImage;
 
     [HorizontalLine]
     [Header("Map")]
@@ -36,12 +37,15 @@ public class UIController : MonoBehaviour
     public TMP_Text SNum;
     public TMP_Text GNum;
 
+    public Button ClosePackageButton;
+
+    public GameObject CharacterInfoCamera;
 
     public GameObject PausePanel, PackagePanel, InfoPanel, AimInfoPanel, DeadPanel, DeadPanelButton, Player;
 
     private Volume GlobalVolume;
 
-    private Vignette vignette;
+    public Vignette vignette;
     public Image AimImage, AimHPImage;
 
 
@@ -58,9 +62,19 @@ public class UIController : MonoBehaviour
 
     private Vector3[] SkillUIInitialPosition;
 
-    private float SkillBarExistTime = 0, DeaddeltaTime = 0;
+    private float SkillBarExistTime = 0;
 
-    public bool isPause = false, isBattle = false;
+    public bool isPause = false;
+
+    public List<GameObject> isBattleFrom;
+    public Image SecneTrans;
+
+    private float SecneTransdeltaTime = 0;
+
+    //箱子控制
+    public GameObject CasePanel;
+    public GameObject LeftPanel;
+    public bool isCase = false;
 
     //性能释放
     [HorizontalLine]
@@ -68,10 +82,13 @@ public class UIController : MonoBehaviour
     public float TickTime = 0.2f;
     private float TickdeltaTime = 0;
 
+    private float SetPackagedeltaTime = 0;
+
 
     // Start is called before the first frame update
     void Start()
     {
+        PackagePanel.SetActive(true);
         PlayerOptionInfoInitialPosition = PlayerOptionInfo.transform.position;
         AimInfoPanelInitialPosition = AimInfoPanel.transform.position;
         SkillUIInitialPosition = new Vector3[SkillUI.Length];
@@ -87,11 +104,39 @@ public class UIController : MonoBehaviour
         //需要更新
         GlobalVolume = GameObject.FindGameObjectWithTag("GlobalVolume").GetComponent<Volume>();
         GlobalVolume.profile.TryGet<Vignette>(out vignette);
+        ClosePackageButton.onClick.AddListener(BagController);
+
+        SecneTransdeltaTime = 0.5f;
+        SecneTrans.color = new Color(0, 0, 0, 1);
+        SecneTrans.enabled = true;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (SecneTransdeltaTime > 0)
+        {
+            SecneTransdeltaTime -= Time.deltaTime;
+        }
+        else
+        {
+            if (SecneTrans.enabled && SecneTrans.color.a > 0.01f)
+            {
+                SecneTrans.color -= new Color(0, 0, 0, Time.deltaTime * 0.6f / (SecneTrans.color.a + 0.1f));
+                if (SecneTrans.color.a < 0.01f)
+                    SecneTrans.enabled = false;
+            }
+        }
+
+        if (SetPackagedeltaTime >= 0 && SetPackagedeltaTime <= 0.5f)
+            SetPackagedeltaTime += Time.deltaTime;
+        else if (SetPackagedeltaTime > 0.5f)
+        {
+            SetPackagedeltaTime = -1;
+            PackagePanel.SetActive(false);
+        }
+
         if (vignette == null)
         {
             GlobalVolume = GameObject.FindGameObjectWithTag("GlobalVolume").GetComponent<Volume>();
@@ -105,21 +150,25 @@ public class UIController : MonoBehaviour
             AimBarController();
             PlayerInfoBarController();
             MapController();
-            BagController();
+
+            if (Input.GetKeyDown(KeyCode.B) && !PausePanel.activeSelf)
+                BagController();
+
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 PauseController();
             }
-            DeadPanelController();
+            //DeadPanelController();
 
             //进入战斗屏幕变红
-            if (isBattle)
+            if (isBattleFrom.Count != 0)
             {
                 SkillBarExistTime = 0;
 
                 if (vignette.color.value.r < 1)
                 {
                     vignette.color.value += new Color(Time.deltaTime, 0, 0);
+                    vignette.intensity.value += Time.deltaTime * 0.1f;
                 }
             }
             else
@@ -129,15 +178,16 @@ public class UIController : MonoBehaviour
                 if (vignette.color.value.r > 0)
                 {
                     vignette.color.value -= new Color(Time.deltaTime, 0, 0);
+                    vignette.intensity.value -= Time.deltaTime * 0.1f;
                 }
 
             }
-            Player.GetComponent<PlayerController>().isBattle = isBattle;
+            Player.GetComponent<PlayerController>().isBattle = isBattleFrom.Count != 0;
         }
 
     }
 
-    private void DeadPanelController()
+    /*private void DeadPanelController()
     {
         if (Player.GetComponent<PlayerController>().PlayerHP <= 0)
         {
@@ -171,17 +221,27 @@ public class UIController : MonoBehaviour
             if (DeadPanel.GetComponent<Image>().color.a < 0.8f)
                 DeadPanel.GetComponent<Image>().color += new Color(0, 0, 0, 1) * Time.deltaTime;
         }
-    }
-    private void BagController()
+    }*/
+
+    public void BagController()
     {
-        if (Input.GetKeyDown(KeyCode.B) && !PausePanel.activeSelf)
-        {
-            CNum.text = Player.GetComponent<PlayerController>().CopperCoin.ToString();
-            SNum.text = Player.GetComponent<PlayerController>().SilverCoin.ToString();
-            GNum.text = Player.GetComponent<PlayerController>().GoldCoin.ToString();
-            PackagePanel.SetActive(!PackagePanel.activeSelf);
-            InfoPanel.SetActive(!PackagePanel.activeSelf);
-        }
+
+        CNum.text = Player.GetComponent<PlayerController>().CopperCoin.ToString();
+        SNum.text = Player.GetComponent<PlayerController>().SilverCoin.ToString();
+        GNum.text = Player.GetComponent<PlayerController>().GoldCoin.ToString();
+
+        //箱子控制
+        CasePanel.SetActive(isCase);
+        LeftPanel.SetActive(!isCase);
+
+        if (PackagePanel.activeSelf)
+            isCase = false;
+
+        PackagePanel.SetActive(!PackagePanel.activeSelf);
+        CharacterInfoCamera.SetActive(PackagePanel.activeSelf);
+        InfoPanel.SetActive(!PackagePanel.activeSelf);
+
+        Player.GetComponent<PlayerController>().packageController.RefreshClick();
     }
     public void PauseController()
     {
@@ -260,8 +320,9 @@ public class UIController : MonoBehaviour
     }
     private void PlayerInfoBarController()
     {
-        PlayerHPImage.fillAmount = Mathf.Lerp(a: PlayerHPImage.fillAmount, b: Player.GetComponent<PlayerController>().PlayerHP / Player.GetComponent<PlayerController>().PlayerMaxHP, t: 3 * Time.deltaTime);
-        PlayerMPImage.fillAmount = Player.GetComponent<PlayerController>().PlayerMP / Player.GetComponent<PlayerController>().PlayerMaxMP;
+        PlayerArmorImage.fillAmount = Mathf.Lerp(a: PlayerArmorImage.fillAmount, b: Player.GetComponent<PlayerController>().FinalCharacterInfos[12] / Player.GetComponent<PlayerController>().FinalCharacterInfos[0], t: 3 * Time.deltaTime);
+        PlayerHPImage.fillAmount = Mathf.Lerp(a: PlayerHPImage.fillAmount, b: Player.GetComponent<PlayerController>().PlayerHP / Player.GetComponent<PlayerController>().FinalCharacterInfos[0], t: 3 * Time.deltaTime);
+        PlayerMPImage.fillAmount = Player.GetComponent<PlayerController>().PlayerMP / Player.GetComponent<PlayerController>().FinalCharacterInfos[4];
     }
     private void AimBarController()
     {
@@ -271,7 +332,7 @@ public class UIController : MonoBehaviour
             {
                 AimHPImage.enabled = true;
                 AimHPImage.color = new Color(80f / 255, 150f / 255, 80f / 255, 0.8f);
-                AimHPImage.fillAmount = Mathf.Lerp(a: AimHPImage.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<NPCInfo>().NPCMaxHP, t: 3 * Time.deltaTime);
+                AimHPImage.fillAmount = Mathf.Lerp(a: AimHPImage.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<FNPCInfo>().NPCHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<FNPCInfo>().NPCMaxHP, t: 3 * Time.deltaTime);
 
             }
             else if (Player.GetComponent<PlayerController>().HitAim.tag == "IntItem")
@@ -286,12 +347,19 @@ public class UIController : MonoBehaviour
                 if (Player.GetComponent<PlayerController>().HitAim != null)
                     AimHPImage.fillAmount = Mathf.Lerp(a: AimHPImage.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyMaxHP, t: 3 * Time.deltaTime);
             }
+            else if (Player.GetComponent<PlayerController>().HitAim.tag == "NPCNeutrality")
+            {
+                AimHPImage.enabled = true;
+                AimHPImage.color = new Color(230f / 255, 210f / 255, 60f / 255, 0.8f);
+                if (Player.GetComponent<PlayerController>().HitAim != null)
+                    AimHPImage.fillAmount = Mathf.Lerp(a: AimHPImage.fillAmount, b: Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyHP / Player.GetComponent<PlayerController>().HitAim.GetComponent<EnemyInfo>().EnemyMaxHP, t: 3 * Time.deltaTime);
+            }
             AimImage.enabled = true;
             AimImage.sprite = Player.GetComponent<PlayerController>().HitAim.GetComponent<SpriteRenderer>().sprite;
 
             AimInfoPanel.transform.position += 10 * (AimInfoPanelInitialPosition - AimInfoPanel.transform.position) * Time.deltaTime;
         }
-        else if (AimInfoPanel.transform.position.y < AimInfoPanelInitialPosition.y + 200)
+        else if (AimInfoPanel.transform.position.y < AimInfoPanelInitialPosition.y + 250)
         {
             AimInfoPanel.transform.position += new Vector3(0, (0.1f + 15 * math.abs(AimInfoPanel.transform.position.y - AimInfoPanelInitialPosition.y)) * Time.deltaTime, 0);
             AimImage.enabled = false;
@@ -362,4 +430,5 @@ public class UIController : MonoBehaviour
             }
         }
     }
+
 }

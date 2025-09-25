@@ -63,9 +63,9 @@ public class 恢复光环 : MonoBehaviour
             {
                 SkillRange.SetActive(true);
                 SkillRange.transform.position = transform.position;
-                Vector3 scale= new Vector3();
-                scale.y = PreSkillRange.transform.localScale.x /2f; // 保持Y轴不变
-                scale.z =   PreSkillRange.transform.localScale.x / 2f; // 
+                Vector3 scale = new Vector3();
+                scale.y = PreSkillRange.transform.localScale.x / 2f; // 保持Y轴不变
+                scale.z = PreSkillRange.transform.localScale.x / 2f; // 
                 scale.x = PreSkillRange.transform.localScale.x / 2f; // 
                 SkillRange.transform.localScale = scale;
                 healCastStartPos = transform.position;
@@ -139,7 +139,7 @@ public class 恢复光环 : MonoBehaviour
             //Debug.Log($"[SkillE] 查找对象角色：恢复前HP：{stats.PlayerHP}");
             if (stats != null)
             {
-                if (stats.PlayerHP < stats.PlayerMaxHP)
+                if (stats.PlayerHP < stats.FinalCharacterInfos[0])
                 {
                     stats.GetHeal = HealAmount; // 增加生命值
                 }
@@ -156,7 +156,7 @@ public class 恢复光环 : MonoBehaviour
             if (npc != null)
             {
                 // 获取并修改NPC的特定属性
-                NPCInfo behavior = npc.GetComponent<NPCInfo>();
+                FNPCInfo behavior = npc.GetComponent<FNPCInfo>();
                 if (behavior != null)
                 {
                     Debug.Log($"[SkillE] 查找对象{npc}：恢复前HP：{behavior.NPCHP}");

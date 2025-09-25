@@ -31,9 +31,9 @@ Material:
   - _GRADIENTSPACE_WORLD
   - _OUTLINESPACE_SCREEN
   - _TEXTUREBLENDINGMODE_MULTIPLY
+  - _UNITYSHADOWMODE_MULTIPLY
   m_InvalidKeywords:
   - _ALPHAMODULATE_ON
-  - _UNITYSHADOWMODE_NONE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
@@ -67,8 +67,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
+        m_Texture: {fileID: 2800000, guid: 7e5b494d6154142d0b1b9af8a125e8c9, type: 3}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     - _DetailMask:
         m_Texture: {fileID: 0}
@@ -95,6 +95,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ShadowMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -129,10 +133,10 @@ Material:
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 0
-    - _Cutoff: 1
+    - _Cutoff: 0.9
     - _DetailAlbedoMapScale: 1
     - _DetailMapBlendingMode: 0
-    - _DetailMapImpact: 0
+    - _DetailMapImpact: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
@@ -154,7 +158,7 @@ Material:
     - _GradientSize: 10
     - _GradientSpace: 0
     - _LightContribution: 0.5
-    - _LightFalloffSize: 0
+    - _LightFalloffSize: 0.3
     - _LightmapDirectionPitch: 0
     - _LightmapDirectionYaw: 0
     - _Metallic: 0
@@ -173,6 +177,7 @@ Material:
     - _SelfShadingSizeExtra: 0.6
     - _ShadowEdgeSize: 0.05
     - _ShadowEdgeSizeExtra: 0.05
+    - _ShadowMapContrast: 1
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularEnabled: 0
@@ -182,9 +187,9 @@ Material:
     - _Surface: 0
     - _TextureBlendingMode: 0
     - _TextureImpact: 1
-    - _UnityShadowMode: 0
+    - _UnityShadowMode: 1
     - _UnityShadowOcclusion: 0
-    - _UnityShadowPower: 0.06
+    - _UnityShadowPower: 0.7
     - _UnityShadowSharpness: 8.71
     - _VertexColorsEnabled: 0
     - _VertexExtrusionSmoothNormals: 0
@@ -204,6 +209,8 @@ Material:
     - _FlatSpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _LightmapDirection: {r: 0, g: 1, b: 0, a: 0}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _ShadowMapOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _ShadowMapTiling: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _UnityShadowColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

@@ -49,7 +49,7 @@ public class 变羊术 : MonoBehaviour
             AimEnemy.GetComponent<EnemyInfo>().EnemySprite.SetActive(false);
             if (SheepdeltaTime == 0)
             {
-                SheepIns = Instantiate(SheepSample, AimEnemy.transform.position + new Vector3(0, 0.3f, 0), AimEnemy.transform.rotation);
+                SheepIns = Instantiate(SheepSample, AimEnemy.transform.position + new Vector3(0, 0, 0), AimEnemy.transform.rotation);
             }
             SheepdeltaTime += Time.deltaTime;
 

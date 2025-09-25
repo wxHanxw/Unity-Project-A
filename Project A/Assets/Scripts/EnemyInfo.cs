@@ -5,19 +5,45 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
 using TMPro;
+using UnityEngine.Rendering.Universal;
 public class EnemyInfo : MonoBehaviour
 {
     //basic info
     [HorizontalLine]
     [Header("Basic Information")]
+    public int ID = 1001;
     public float EnemyMaxHP = 1;
     public float MoveSpeed = 3;
     public float Attack = 1;
     public float AttackRange = 1;
     public float NormalAttackInterval = 1;
-    private float NormalAttackIntervaldeltaTime = 0;
+    public float NormalAttackPre = 0.5f;
+
+    public int Weight = 10;
+
+    public ColliderTrigger GroundCheck;
+
+    [HideInInspector]
+    public float NormalAttackIntervaldeltaTime = 0;
+
+    public int NormalAttackTimes = 0;
 
     public float EnemyDefence = 1;
+
+    public Animator animator;
+
+    //移动模式
+    public bool isJumpMove = false;
+    public float JumpSpeed = 1;
+
+    public GameObject toGroundParticle;
+    public GameObject JumpTraceParticle;
+    public float JumpTraceParticleScale = 1;
+    private Vector3 JumpVector;
+    public bool canMove = true;
+    public bool canAttack = true;
+
+    public bool isAttacking = false;
 
     [HideInInspector]
     public float EnemyHP;
@@ -29,12 +55,12 @@ public class EnemyInfo : MonoBehaviour
     private GameObject[] DamageHolderList;
     private float[] DamageList;
 
-    private GameObject AttackAim;
+    public GameObject AttackAim;
 
 
     private float RealGetDamage = 0;
     private GameObject Canvas;
-    private NavMeshAgent navMeshAgent;
+    public NavMeshAgent navMeshAgent;
 
     [HorizontalLine]
     [Header("AI Idel")]
@@ -57,12 +83,16 @@ public class EnemyInfo : MonoBehaviour
 
     private TMP_Text DamageFigure;
 
-    private float IdelIntervaldeltaTime = 0, WalkSpeed;
+    private float IdelIntervaldeltaTime = 0;
 
+    public float NormalAttackPredeltaTime = 0, WalkSpeed;
     private Vector3 InitialPosition, MovetoPosition;
 
+    public Vector3 BeAttackedDeriction;
+
+    private float ySpeed = 0;
     [HideInInspector]
-    public bool isFollowing = false, isDead = false, isBattle = false;
+    public bool isFollowing = false, isDead = false, isBattle = false, isCrit = false, isGround = false;
 
     private GameObject Character, UICanvas;
     // Start is called before the first frame update
@@ -70,7 +100,8 @@ public class EnemyInfo : MonoBehaviour
     {
         DamageHolderList = new GameObject[10];
         DamageList = new float[10];
-        NormalAttack.GetComponent<NormalAttackTrigger>().Damage = Attack;
+        if (NormalAttack != null)
+            NormalAttack.GetComponent<NormalAttackTrigger>().Damage = Attack;
         EnemyHP = EnemyMaxHP;
         Canvas = GameObject.FindGameObjectWithTag("Canvas");
         Character = GameObject.FindGameObjectWithTag("Character");
@@ -100,10 +131,17 @@ public class EnemyInfo : MonoBehaviour
 
         if (!isDead)
         {
+            gameObject.GetComponent<Collider>().isTrigger = navMeshAgent.enabled;
             HPController();
-            RandomMove();
-            AttackFollowCheck();
-            AttackController();
+            if (canMove)
+            {
+                RandomMove();
+            }
+            if (canAttack)
+            {
+                AttackFollowCheck();
+                AttackController();
+            }
         }
         else if (EnemySprite.activeSelf)
         {
@@ -113,40 +151,56 @@ public class EnemyInfo : MonoBehaviour
             Character.GetComponent<PlayerController>().Chooser.SetActive(false);
             this.GetComponent<Collider>().enabled = false;
             NormalAttack.SetActive(false);
-            Canvas.GetComponent<UIController>().isBattle = false;
+            Canvas.GetComponent<UIController>().isBattleFrom.Remove(gameObject);
         }
 
-
+        //落地检测
+        if (GroundCheck.isToched && ySpeed <= 0)
+        {
+            isGround = true;
+            navMeshAgent.enabled = true;
+        }
+        else if (!GroundCheck.isToched && ySpeed > 0)
+        {
+            isGround = false;
+        }
     }
 
     private void AttackController()
     {
+        if (!isFollowing)
+        {
+            NormalAttackPredeltaTime = 0;
+            NormalAttackIntervaldeltaTime = 0;
+            NormalAttack.SetActive(false);
+        }
+
         NormalAttackIntervaldeltaTime += Time.deltaTime;
         if (isFollowing && (transform.position - Character.transform.position).magnitude < AttackRange)
         {
             if (NormalAttackIntervaldeltaTime > NormalAttackInterval)
             {
-                NormalAttack.SetActive(true);
-                NormalAttackIntervaldeltaTime = 0;
+                //预备攻击
+                isAttacking = true;
             }
-        }
-        if (NormalAttackIntervaldeltaTime > 5 * Time.deltaTime)
-        {
-            NormalAttack.SetActive(false);
         }
     }
 
     private void HPController()
     {
-        if (BeAttackedIntervaldeltaTime <= 0.15f)
+        if (BeAttackedIntervaldeltaTime <= 0.2f)
         {
+            gameObject.transform.Translate(BeAttackedDeriction / Weight);
+            gameObject.GetComponent<Collider>().enabled = false;
             BeAttackedIntervaldeltaTime += Time.deltaTime;
-            if (BeAttackedIntervaldeltaTime > 0.15f)
+            if (BeAttackedIntervaldeltaTime > 0.2f)
             {
+                gameObject.GetComponent<Collider>().enabled = true;
+                animator.SetBool("isAttacked", false);
                 EnemyBeAttackedSprite.SetActive(false);
             }
         }
-        if (GetDamage != 0)
+        if (GetDamage != 0 && BeAttackedIntervaldeltaTime > 0.2f)
         {
             RealGetDamage = GetDamage - EnemyDefence;
             if (RealGetDamage < 1)
@@ -170,23 +224,42 @@ public class EnemyInfo : MonoBehaviour
                 }
             }
 
-            EnemyBeAttackedSprite.SetActive(true);
+            //EnemyBeAttackedSprite.SetActive(true);
+            animator.SetBool("isAttacked", true);
             BeAttackedIntervaldeltaTime = 0;
             TMP_Text DamageFigureIns = Instantiate(DamageFigure, transform.position + new Vector3(0, 0.5f, 0), transform.rotation, DamageFigure.transform.parent);
             DamageFigureIns.text = RealGetDamage.ToString();
+            DamageFigureIns.color = new Color(1, 0, 0);//red
+            if (isCrit)
+            {
+                DamageFigureIns.fontStyle |= FontStyles.Bold;
+                DamageFigureIns.fontSize = 16;
+            }
+            else
+            {
+                DamageFigureIns.fontStyle &= ~FontStyles.Bold;
+                DamageFigureIns.fontSize = 12;
+            }
             DamageFigureIns.gameObject.SetActive(true);
             if (Character.GetComponent<PlayerController>().HitAim == null || Character.GetComponent<PlayerController>().HitAim.tag != "Enemy")
             {
                 Character.GetComponent<PlayerController>().HitAim = this.gameObject;
                 Character.GetComponent<PlayerController>().isChooseItem = true;
-                Character.GetComponent<PlayerController>().Chooser.SetActive(true);
+                if (Character.GetComponent<PlayerController>().UseChooser)
+                    Character.GetComponent<PlayerController>().Chooser.SetActive(true);
             }
             GetDamage = 0;
         }
         if (EnemyHP <= 0)
         {
             EnemyHP = 0;
-            isDead = true;
+            if (!isDead)
+            {
+                Character.GetComponent<TaskController>().AimID = ID;
+                Character.GetComponent<TaskController>().TaskUpdate();
+                isDead = true;
+            }
+
         }
         else if (EnemyHP > EnemyMaxHP)
         {
@@ -197,7 +270,7 @@ public class EnemyInfo : MonoBehaviour
     private void RandomMove()
     {
         IdelIntervaldeltaTime += Time.deltaTime;
-        if (!isFollowing && IdelIntervaldeltaTime > IdelIntervalTime)
+        if (!isJumpMove && !isFollowing && IdelIntervaldeltaTime > IdelIntervalTime)
         {
             navMeshAgent.speed = WalkSpeed;
 
@@ -207,7 +280,39 @@ public class EnemyInfo : MonoBehaviour
             float randomalpha = (float)random.NextDouble() * 2 * math.PI;
             MovetoPosition = new Vector3(randomR * math.sin(randomalpha), 0, randomR * math.cos(randomalpha));
 
-            navMeshAgent.destination = InitialPosition + MovetoPosition;
+            if (isGround && navMeshAgent.enabled)
+                navMeshAgent.destination = InitialPosition + MovetoPosition;
+        }
+
+        if (isJumpMove && !isFollowing && IdelIntervaldeltaTime > IdelIntervalTime)
+        {
+            JumpFunction(new Vector3(0, 0, 0));
+
+        }
+
+        animator.SetBool("isJump", !isGround);
+        navMeshAgent.enabled = isGround;
+        if (!isGround)
+        {
+            System.Random random = new System.Random();
+            GameObject Ins = Instantiate(JumpTraceParticle, transform.position + new Vector3(0, 0.3f, 0), transform.rotation);
+            Ins.transform.localScale = new Vector3(1f, 1f, 1f) * JumpTraceParticleScale * ((float)random.NextDouble() / 1.5f + 0.5f);
+            Ins.SetActive(true);
+            JumpVector.y = ySpeed;
+            transform.Translate(JumpVector * Time.deltaTime);
+        }
+        if (!isGround)
+            ySpeed -= 40f * Time.deltaTime;
+        else if (ySpeed < 0)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                GameObject Ins = Instantiate(toGroundParticle, transform.position, transform.rotation);
+                System.Random random = new System.Random();
+                Ins.transform.localScale = new Vector3(1f, 1f, 1f) * JumpTraceParticleScale * ((float)random.NextDouble() / 1.5f + 0.5f);
+                Ins.SetActive(true);
+            }
+            ySpeed = 0;
         }
     }
 
@@ -222,28 +327,57 @@ public class EnemyInfo : MonoBehaviour
             }
             else if (MaxDamge < DamageList[i])
             {
-                MaxDamge = DamageList[i];
-                AttackAim = DamageHolderList[i];
+                if (DamageHolderList[i].tag == "Character" && DamageHolderList[i].GetComponent<PlayerController>().isGhost == false)
+                {
+                    MaxDamge = DamageList[i];
+                    AttackAim = DamageHolderList[i];
+                }
             }
         }
         //攻击最高伤害来源
         if (AttackAim != null && (transform.position - InitialPosition).magnitude < 6 * IdelMoveRange)
         {
             isFollowing = true;
-            navMeshAgent.speed = MoveSpeed;
-            navMeshAgent.destination = AttackAim.transform.position;
-        }
-        else if ((transform.position - InitialPosition).magnitude > 6 * IdelMoveRange)
-        {
-            isFollowing = false;
-        }
+            if (isGround && canMove)
+            {
+                navMeshAgent.speed = MoveSpeed;
+                navMeshAgent.destination = AttackAim.transform.position;
+            }
 
+        }
+        else if (isFollowing && (transform.position - InitialPosition).magnitude > 6 * IdelMoveRange)
+        {
+            for (int i = 0; i < DamageHolderList.Length; i++)
+            {
+                DamageList[i] = 0;
+                DamageHolderList[i] = null;
+            }
+            AttackAim = null;
+            isFollowing = false;
+            IdelIntervaldeltaTime = IdelIntervalTime;
+        }
+        //目标死亡后刷新
+        if (AttackAim != null)
+        {
+            if (AttackAim.tag == "Character" && AttackAim.GetComponent<PlayerController>().PlayerHP <= 0)
+            {
+                AttackAim = null;
+                isFollowing = false;
+                IdelIntervaldeltaTime = IdelIntervalTime;
+            }
+        }
         //攻击附近的敌人
-        if (Character != null && (transform.position - InitialPosition).magnitude < 4 * IdelMoveRange && (transform.position - Character.transform.position).magnitude < AttackFollowRange)
+        if (Character != null && Character.GetComponent<PlayerController>().PlayerHP > 0 && (transform.position - InitialPosition).magnitude < 4 * IdelMoveRange && (transform.position - Character.transform.position).magnitude < AttackFollowRange)
         {
             isFollowing = true;
-            navMeshAgent.speed = MoveSpeed;
-            navMeshAgent.destination = Character.transform.position;
+            AttackAim = Character;
+            if (isGround && canMove)
+            {
+                navMeshAgent.speed = MoveSpeed;
+                navMeshAgent.stoppingDistance = AttackRange;
+                navMeshAgent.destination = Character.transform.position;
+            }
+
         }
         else if (AttackAim == null)
         {
@@ -254,13 +388,48 @@ public class EnemyInfo : MonoBehaviour
         if (!isFollowing && !isBattle)
         {
             IdelHealdeltaTime += Time.deltaTime;
+            for (int i = 0; i < DamageList.Length; i++)
+            {
+                DamageList[i] = 0;
+            }
+
             if (IdelHealdeltaTime > 0.3f)
             {
                 EnemyHP += IdelHeal;
                 IdelHealdeltaTime = 0;
             }
         }
+        if (isFollowing && AttackAim == Character)
+        {
+            if (!Canvas.GetComponent<UIController>().isBattleFrom.Contains(gameObject))
+                Canvas.GetComponent<UIController>().isBattleFrom.Add(gameObject);
+        }
+        else
+            Canvas.GetComponent<UIController>().isBattleFrom.Remove(gameObject);
+    }
 
-        Canvas.GetComponent<UIController>().isBattle = isFollowing;
+
+    public void JumpFunction(Vector3 JumpDirecrion)
+    {
+        if (JumpDirecrion.magnitude == 0)
+        {
+            System.Random random = new System.Random();
+            IdelIntervaldeltaTime = ((float)random.NextDouble() / 2 - 1) * IdelIntervaldeltaTime / 2;
+            float randomR = ((float)random.NextDouble() / 2 + 0.5f) * IdelMoveRange;
+            float randomalpha = (float)random.NextDouble() * 2 * math.PI;
+            ySpeed = JumpSpeed;
+
+            JumpVector = new Vector3(randomR * math.sin(randomalpha), ySpeed, randomR * math.cos(randomalpha));
+        }
+        else
+        {
+            ySpeed = JumpSpeed;
+
+            JumpVector = new Vector3(JumpDirecrion.x, ySpeed, JumpDirecrion.z);
+        }
+
+        isGround = false;
+        navMeshAgent.enabled = false;
+        animator.SetBool("isJump", true);
     }
 }

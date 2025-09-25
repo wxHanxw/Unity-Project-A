@@ -28,6 +28,7 @@ public class ButtonController : MonoBehaviour
 
     public void ReviveButtonClick()
     {
+        Cemetery = GameObject.FindGameObjectsWithTag("Cemetery");
         for (int i = 0; i < Cemetery.Length; i++)
         {
             if ((Cemetery[i].transform.position - Player.transform.position).magnitude < MinCemeteryDistance)
@@ -42,7 +43,7 @@ public class ButtonController : MonoBehaviour
         Player.transform.position = NearestCemetery.transform.position;
         Player.GetComponent<CharacterController>().enabled = true;
         Player.GetComponent<NavMeshAgent>().enabled = true;
-        Player.GetComponent<PlayerController>().PlayerHP = Player.GetComponent<PlayerController>().PlayerMaxHP;
+        Player.GetComponent<PlayerController>().PlayerHP = Player.GetComponent<PlayerController>().FinalCharacterInfos[0];
 
     }
 }

@@ -67,10 +67,14 @@
         _LightmapDirectionYaw("[DR_ENABLE_LIGHTMAP_DIR]Yaw", Range(0, 360)) = 0
         [HideInInspector] _LightmapDirection("Direction", Vector) = (0, 1, 0, 0)
 
-        [KeywordEnum(None, Multiply, Color)] _UnityShadowMode ("[FOLDOUT(Unity Built-in Shadows){5}]Mode", Float) = 0
+        [KeywordEnum(None, Multiply, Color)] _UnityShadowMode ("[FOLDOUT(Unity Built-in Shadows){9}]Mode", Float) = 0
         _UnityShadowPower("[_UNITYSHADOWMODE_MULTIPLY]Power", Range(0, 1)) = 0.2
         _UnityShadowColor("[_UNITYSHADOWMODE_COLOR]Color", Color) = (0.85023, 0.85034, 0.85045, 0.85056)
         _UnityShadowSharpness("Sharpness", Range(1, 10)) = 1.0
+        _ShadowMap("Shadow Map", 2D) = "white" {}
+        _ShadowMapTiling("Shadowmap Tiling", Vector) = (1, 1, 1, 1)
+        _ShadowMapOffset("Shadowmap Offset", Vector) = (0, 0, 0, 0)
+        _ShadowMapContrast("Shadowmap Contrast", Range(0.1, 5)) = 1.0
         [Toggle(_UNITYSHADOW_OCCLUSION)]_UnityShadowOcclusion("Shadow Occlusion", Int) = 0
 
         [MainTexture] _BaseMap("[FOLDOUT(Texture Maps){11}]Albedo", 2D) = "white" {}
@@ -208,6 +212,10 @@
             #pragma target 4.5
             #pragma multi_compile _ DOTS_INSTANCING_ON
             #endif
+
+            //shadow map
+            //TEXTURE2D(_ShadowMap);
+            //SAMPLER(sampler_ShadowMap); 
 
             // Detail map.
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

@@ -33,22 +33,22 @@ public class Coins : MonoBehaviour
             transform.eulerAngles += new Vector3((90 - transform.eulerAngles.x) / 3, 0, 0);
         }
 
-        if (Input.GetKey(KeyCode.L) && ySpeed < -2 && isTake)
+        if (Input.GetKey(KeyCode.F) && ySpeed < -2 && isTake)
         {
             Destroy(gameObject);
             if (gameObject.name == "CoinCopper")
             {
-                Player.GetComponent<PlayerController>().CopperCoin += NumberofCoin;
+                Player.GetComponent<PlayerController>().TotalCoin += NumberofCoin;
                 Player.GetComponent<PlayerController>().CoinController();
             }
             else if (gameObject.name == "CoinSilver")
             {
-                Player.GetComponent<PlayerController>().SilverCoin += NumberofCoin;
+                Player.GetComponent<PlayerController>().TotalCoin += NumberofCoin * 100;
                 Player.GetComponent<PlayerController>().CoinController();
             }
             else if (gameObject.name == "CoinGold")
             {
-                Player.GetComponent<PlayerController>().GoldCoin += NumberofCoin;
+                Player.GetComponent<PlayerController>().TotalCoin += NumberofCoin * 10000;
                 Player.GetComponent<PlayerController>().CoinController();
             }
             Player.GetComponent<PlayerController>().TakingItemController(ItemSprite.GetComponent<SpriteRenderer>().sprite, NumberofCoin);
@@ -58,7 +58,7 @@ public class Coins : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Character")
+        if (other.tag == "Character" && other.GetComponent<PlayerController>().isGhost == false)
         {
             isTake = true;
             isGround = false;

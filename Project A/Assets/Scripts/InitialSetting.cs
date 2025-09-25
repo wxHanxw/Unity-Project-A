@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TextCore.Text;
 
 public class InitialSetting : MonoBehaviour
 {
+    private int screenWidth, screenHeight;
+    public GameObject AimInfoUI, PlayerInfoUI, AreaInfoUI, PlayerPackageUI;
     public GameObject CharacterCamera;
     public GameObject CharacterCanvas;
 
@@ -19,6 +22,26 @@ public class InitialSetting : MonoBehaviour
 
     void Start()
     {
+        //屏幕适配
+        screenWidth = Screen.width;
+        screenHeight = Screen.height;
+        Vector3 scale;
+        if (Screen.width > 2560)
+        {
+            scale = new Vector3(1, 1, 1) * math.sqrt((float)Screen.width / 2560);
+            PlayerPackageUI.transform.localScale = new Vector3(1, 1, 1) * math.pow(scale.x, 1.9f);
+        }
+        else
+        {
+            scale = new Vector3(1, 1, 1) * Screen.width / 2560;
+            PlayerPackageUI.transform.localScale = scale;
+        }
+
+        AimInfoUI.transform.localScale = scale;
+        PlayerInfoUI.transform.localScale = scale;
+        AreaInfoUI.transform.localScale = scale;
+
+
         //单例模式
         if (SceneManager.GetActiveScene().buildIndex != 0)
         {
@@ -57,10 +80,10 @@ public class InitialSetting : MonoBehaviour
             CharacterSprite.GetComponent<SpriteRotator>().enabled = false;
             Character.GetComponent<PlayerController>().enabled = false;
 
-            GameObject StartSceneController = GameObject.FindGameObjectWithTag("StartSceneController");
-            Character.transform.position = StartSceneController.GetComponent<StartSceneController>().Characters[CharacterIndex].GetComponent<InitialSetting>().Character.transform.position;
-            Destroy(StartSceneController.GetComponent<StartSceneController>().Characters[CharacterIndex]);
-            StartSceneController.GetComponent<StartSceneController>().Characters[CharacterIndex] = this.gameObject;
+            //GameObject StartSceneController = GameObject.FindGameObjectWithTag("StartSceneController");
+            // Character.transform.position = StartSceneController.GetComponent<StartSceneController>().Characters[CharacterIndex].GetComponent<InitialSetting>().Character.transform.position;
+            //Destroy(StartSceneController.GetComponent<StartSceneController>().Character);
+            //StartSceneController.GetComponent<StartSceneController>().Character = this.gameObject;
             gameObject.SetActive(false);
         }
     }

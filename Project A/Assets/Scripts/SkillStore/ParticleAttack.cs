@@ -36,7 +36,7 @@ public class ParticleAttack : MonoBehaviour
             other.gameObject.GetComponent<EnemyInfo>().GetDamageHolder = Holder;
         }
 
-        if (other.tag != "Particle")
+        if (other.tag == "Ground" || other.tag == "Enemy")
         {
             DestroydeltaTime = 0.2f;
         }

@@ -1,0 +1,34 @@
+
+衣服.png
+size: 999,2082
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+4001A
+  rotate: false
+  xy: 2, 706
+  size: 972, 658
+  orig: 972, 658
+  offset: 0, 0
+  index: -1
+4001B
+  rotate: true
+  xy: 513, 8
+  size: 696, 472
+  orig: 696, 472
+  offset: 0, 0
+  index: -1
+4002A
+  rotate: false
+  xy: 2, 1366
+  size: 995, 714
+  orig: 1019, 714
+  offset: 12, 0
+  index: -1
+4002B
+  rotate: true
+  xy: 2, 2
+  size: 702, 509
+  orig: 702, 514
+  offset: 0, 0
+  index: -1
