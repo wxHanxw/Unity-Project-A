@@ -37,10 +37,12 @@ public class BillBoard : MonoBehaviour
                     Text.transform.eulerAngles = new Vector3(Camera.transform.eulerAngles.x - 17, Camera.transform.eulerAngles.y, Text.transform.eulerAngles.z);
 
             }
+            HintTexture.GetComponent<SpriteRenderer>().enabled = false;
             Text.SetActive(true);
         }
         else
         {
+            HintTexture.GetComponent<SpriteRenderer>().enabled = true;
             Text.SetActive(false);
         }
 

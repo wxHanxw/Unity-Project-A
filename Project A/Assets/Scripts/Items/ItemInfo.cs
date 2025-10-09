@@ -41,6 +41,9 @@ public class ItemInfo : MonoBehaviour
     public bool canGet = true;
     public bool canForceGet = false;
 
+    public bool canDrop = false;
+    public bool isGround = true;
+    public Vector3 Velocity;
     public GameObject ForceGetHolder;
 
     //功能性
@@ -56,6 +59,8 @@ public class ItemInfo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (canDrop)
+            ItemMove();
         if (Character == null)
         {
             Character = GameObject.FindGameObjectWithTag("Character");
@@ -66,17 +71,14 @@ public class ItemInfo : MonoBehaviour
             {
                 InsChooser = Instantiate(Character.GetComponent<PlayerController>().Chooser, gameObject.transform.position + new Vector3(0, ChooserHight, 0), Character.GetComponent<PlayerController>().Chooser.transform.rotation, transform).gameObject;
                 InsChooser.transform.localScale = new Vector3(ItemSize, ItemSize, ItemSize);
+                Character.GetComponent<PlayerController>().canGetItem.Remove(gameObject);
                 Character.GetComponent<PlayerController>().canGetItem.Add(gameObject);
                 InsChooser.SetActive(true);
             }
 
             if (Input.GetKeyDown(KeyCode.F))
             {
-                gameObject.tag = "BagItem";
-                Character.GetComponent<PlayerController>().canGetItem.Remove(gameObject);
-                Character.GetComponent<PlayerController>().packageController.PutintoBag(gameObject.transform);
-                canGet = false;
-                Character.GetComponent<PlayerController>().TakingItemController(GetComponent<SpriteRenderer>().sprite, ItemNum);
+                GetItem();
             }
         }
         else
@@ -101,6 +103,28 @@ public class ItemInfo : MonoBehaviour
         }
     }
 
+    public void GetItem()
+    {
+        gameObject.tag = "BagItem";
+        Character.GetComponent<PlayerController>().canGetItem.Remove(gameObject);
+        Character.GetComponent<PlayerController>().packageController.PutintoBag(gameObject.transform);
+        canGet = false;
+        canDrop = false;
+        Character.GetComponent<PlayerController>().TakingItemController(GetComponent<SpriteRenderer>().sprite, ItemNum);
+    }
+    private void ItemMove()
+    {
+        if (!isGround)
+            gameObject.transform.position += Velocity * Time.deltaTime;
+
+        if (isGround && Velocity.y < 0)
+            Velocity = new Vector3(0, 0, 0);
+        else
+        {
+            Velocity -= new Vector3(0, 1, 0) * Time.deltaTime * 5f;
+        }
+
+    }
     //物品功能
     public void ItemFunction()
     {
@@ -126,6 +150,22 @@ public class ItemInfo : MonoBehaviour
             ForceGetHolder.GetComponent<FNPCInfo>().enabled = false;
         }
 
+    }
+
+    void OnTriggerStay(Collider other)
+    {
+        if (other.tag == "Ground")
+        {
+            isGround = true;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "Ground")
+        {
+            isGround = false;
+        }
     }
 
 }

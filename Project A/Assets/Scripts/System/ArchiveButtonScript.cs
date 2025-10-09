@@ -36,6 +36,7 @@ public class ArchiveButtonScript : MonoBehaviour
 
     public void DeleteArchiveButtonController()
     {
+        startSceneController.isNew = false;
         string jsonPlayer;
         string filepathPlayer = Application.streamingAssetsPath + "/PlayerInfo.json";
 

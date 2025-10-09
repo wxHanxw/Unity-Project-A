@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Word.unity
     guid: c6ecd576b272a4fa9854eb6e5b092eef
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Cave.unity
     guid: 11ca48aee50024a9f9c1de66175cf968
   m_configObjects: {}

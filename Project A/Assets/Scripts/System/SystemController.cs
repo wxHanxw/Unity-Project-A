@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Audio;
 using System.IO;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering;
 
 
 [System.Serializable]
@@ -35,9 +37,15 @@ public class SystemController : MonoBehaviour
     private GameObject PlayerPositioninScene;
     private InitialSetting InitialSetting;
 
+    private bool isChangeScene = false;
+
+    public UniversalRenderPipelineAsset urpAsset;
+    public Image TransImage;
+
     SystemInfo systemInfo;
     void Start()
     {
+        AudioController();
         LoadData();
         if (SceneManager.GetActiveScene().buildIndex != 0)
             PlayerPositioninScene = GameObject.FindGameObjectWithTag("PlayerPositioninScene");
@@ -57,19 +65,36 @@ public class SystemController : MonoBehaviour
         if (PlayerPositioninScene == null && SceneManager.GetActiveScene().buildIndex != 0)
             PlayerPositioninScene = GameObject.FindGameObjectWithTag("PlayerPositioninScene");
 
+        if (isChangeScene)
+        {
+            Debug.Log(TransImage.color.a);
+            Cursor.visible = false;
+            TransImage.enabled = true;
+            TransImage.color += new Color(0, 0, 0, Time.deltaTime * 2);
+            if (TransImage.color.a > 0.99f)
+            {
+                isChangeScene = false;
+                //SaveData();
+                //场景性能初始化
+                SceneManager.LoadScene(0);
+            }
+
+        }
+
+        //修订
         AudioController();
     }
 
     private void AudioController()
     {
-        // 将0-100范围转换为-80到0分贝（Mixer的常用范围）
-        float db = 100 * Mathf.Log10(0.1f + MainAudioSlider.value * 0.9f) + 20;
+        // 将0-1范围转换为-22到0分贝（Mixer的常用范围）
+        float db = 100 * Mathf.Log10(0.8f + MainAudioSlider.value * 0.2f);
         MainGroup.audioMixer.SetFloat("Master", db);
 
-        db = 100 * Mathf.Log10(0.1f + BGMSlider.value * 0.9f) + 20;
+        db = 100 * Mathf.Log10(0.8f + BGMSlider.value * 0.2f);
         BGMGroup.audioMixer.SetFloat("BGM", db);
 
-        db = 100 * Mathf.Log10(0.1f + SFXSlider.value * 0.9f) + 20;
+        db = 100 * Mathf.Log10(0.8f + SFXSlider.value * 0.2f);
         SFXGroup.audioMixer.SetFloat("SFX", db);
     }
     void BacktoMainPanel()
@@ -93,7 +118,7 @@ public class SystemController : MonoBehaviour
     {
         //DontDestroyOnLoad(gameObject.transform.parent);
         PlayerPositioninScene.transform.position = InitialSetting.Character.transform.position;
-        SceneManager.LoadScene(0);
+        isChangeScene = true;
     }
 
 
@@ -101,6 +126,9 @@ public class SystemController : MonoBehaviour
     {
         systemInfo = new SystemInfo();
         list.SystemInfos.Add(systemInfo);
+        systemInfo.MasterVolume = 0.5f;
+        systemInfo.BGMVolume = 0.5f;
+        systemInfo.SFXVolume = 0.5f;
     }
 
     void SaveData()

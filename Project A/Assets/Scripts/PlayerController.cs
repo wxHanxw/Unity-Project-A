@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
 using ExternPropertyAttributes;
@@ -14,7 +13,6 @@ using System.IO;
 using Spine.Unity;
 using UnityEngine.Animations;
 using UnityEngine.SceneManagement;
-using Unity.VisualScripting;
 
 
 //序列化储存数据
@@ -38,6 +36,8 @@ public class PlayerInfo
     public Vector3 EuipPosition;
     public Vector3 PlayerPosition;
 
+    public Vector3 PlayerRotation;
+
 }
 
 public class PlayerInfoList
@@ -60,7 +60,7 @@ public class PlayerController : MonoBehaviour
     private float JumpdeltaTime = 0;
     private bool CanLongJump = true;
     private int Weight = 5;
-    private float CameraY = 1;
+    public float CameraY = 1f;
 
     public bool UseChooser = true;
 
@@ -96,6 +96,11 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public float PlayerHP, PlayerMP;
 
+    //复活指引
+    [HorizontalLine]
+    [Header("复活指引")]
+    private GameObject[] Cemetery;
+    public GameObject GhostArrow;
     //Coins
     [HorizontalLine]
     [Header("Coins")]
@@ -118,6 +123,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 ItemLocalPosition;
 
     public List<GameObject> canGetItem;
+    private float canGetItemdeltaTime = 0;
 
     //Skill
     [HorizontalLine]
@@ -125,7 +131,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("装备职业: (0)无职业 (1)战士 (2)骑士 (3)法师 (4)牧师 (5)游侠")]
     public int PlayerProfession = 0;
-
+    public Image ProfessionSprite;
     public GameObject[] SkillStoreProfession;
     //index1:职业 6 index2:ID index3:装备格子0/1
     public int[,] PlayerUsedSkillPosition = new int[6, 10];
@@ -185,7 +191,7 @@ public class PlayerController : MonoBehaviour
     public GameObject HitParticle;
 
     [HideInInspector]
-    public bool isGround = false, isWater = false, isChooseItem = false, isGhost = false, isSit = false, isMouseMove = false, isKeyBoardMove = false, CanMove = true, xzCanMove = true;
+    public bool isGround = false, isWater = false, isChooseItem = false, isGhost = false, isSit = false, isMouseMove = false, isKeyBoardMove = false, CanMove = true, xzCanMove = true, canMoveCamera = true;
     [HideInInspector]
     public bool isBattle = false;
 
@@ -234,204 +240,280 @@ public class PlayerController : MonoBehaviour
     private Light Gamelight;
 
     private float StartdeltaTime = 1f;
+
+    //视觉效果
+    public Material skyboxMaterial;
+    public GameObject Clouds;
+    private float targetColor;
+
+    //public Material[] Lights;
+
     //确认加载
     // private bool isLoad = false;
     public Texture2D CursorIcon;
     // Start is called before the first frame update
     void Start()
     {
-        //text
-        PlayerUsedSkillPosition[1, 0] = 1;
-        PlayerUsedSkillPosition[1, 1] = 2;
-        PlayerUsedSkillPosition[3, 0] = 1;
-        //--------
-        //数据加载
-        LoadArchive();
-        LoadData(ArchiveID);
-        //找脚
-        foreach (Transform child in CharacterSitSprite.transform)
+        StartdeltaTime = 1f;
+
+        if (SceneManager.GetActiveScene().buildIndex != 0)
         {
-            if (child.name == "LeftFoot")
+            //test Skill
+            PlayerUsedSkillPosition[1, 0] = 1;
+            PlayerUsedSkillPosition[1, 1] = 2;
+            PlayerUsedSkillPosition[3, 0] = 1;
+            PlayerUsedSkillPosition[3, 1] = 2;
+            //--------
+            //数据加载
+            LoadArchive();
+            LoadData(ArchiveID);
+            isSit = true;
+            //找脚
+            foreach (Transform child in CharacterSitSprite.transform)
             {
-                LeftFoot = child.gameObject;
-            }
-            else if (child.name == "RightFoot")
-            {
-                RightFoot = child.gameObject;
-            }
-            else if (child.name == "ThinkBubble")
-            {
-                ThinkBubble = child.gameObject;
-            }
-        }
-
-        Cursor.SetCursor(CursorIcon, new Vector2(0, 0), CursorMode.ForceSoftware);
-        foreach (Transform child in CharacterSprite.transform)
-        {
-            BeAttackedSprite = child.gameObject;
-            break;
-        }
-
-        foreach (Transform child in PlayerEquipment[0].transform)
-        {
-            AttackModel = child.gameObject.GetComponent<ItemInfo>().AttackType;
-            break;
-        }
-
-        SkillCD = new float[12];
-        SkillDuration = new float[12];
-        SkillMPCost = new float[12];
-
-        SkillCDdeltaTime = new float[12];
-        SkillDurationdeltaTime = new float[12];
-        isSkillReady = new bool[12];
-        isSkilling = new bool[12];
-        isSkillPre = new bool[12];
-        PlayerUsedSkillCD = new Image[12];
-        PlayerUsedSkillUI = new Image[12];
-        PlayerUsingSkill = new GameObject[PlayerSkill.Length];
-
-        CharacterController = Character.GetComponent<CharacterController>();
-        CharacterAgent = GetComponent<NavMeshAgent>();
-
-        for (int i = 0; i < PlayerSkill.Length; i++)
-        {
-            if (PlayerUsedSkillBar[i] != null)
-                foreach (Transform child in PlayerUsedSkillBar[i].transform)
+                if (child.name == "LeftFoot")
                 {
-                    if (child.name == "SkillCD")
-                        PlayerUsedSkillCD[i] = child.GetComponent<Image>();
-                    else if (child.name == "SkillUI")
-                        PlayerUsedSkillUI[i] = child.GetComponent<Image>();
+                    LeftFoot = child.gameObject;
                 }
-        }
+                else if (child.name == "RightFoot")
+                {
+                    RightFoot = child.gameObject;
+                }
+                else if (child.name == "ThinkBubble")
+                {
+                    ThinkBubble = child.gameObject;
+                }
+            }
 
-        //参数初始化
-        LoadEquip();
-        //EquipmentInformation();
+            Cursor.SetCursor(CursorIcon, new Vector2(0, 0), CursorMode.ForceSoftware);
+            foreach (Transform child in CharacterSprite.transform)
+            {
+                BeAttackedSprite = child.gameObject;
+                break;
+            }
 
-        PlayerHP = FinalCharacterInfos[0];
-        PlayerMP = FinalCharacterInfos[4];
-        /*for (int i = 0; i < PlayerSkill.Length; i++)
+            foreach (Transform child in PlayerEquipment[0].transform)
+            {
+                AttackModel = child.gameObject.GetComponent<ItemInfo>().AttackType;
+                break;
+            }
+
+            SkillCD = new float[12];
+            SkillDuration = new float[12];
+            SkillMPCost = new float[12];
+
+            SkillCDdeltaTime = new float[12];
+            SkillDurationdeltaTime = new float[12];
+            isSkillReady = new bool[12];
+            isSkilling = new bool[12];
+            isSkillPre = new bool[12];
+            PlayerUsedSkillCD = new Image[12];
+            PlayerUsedSkillUI = new Image[12];
+            PlayerUsingSkill = new GameObject[PlayerSkill.Length];
+
+            CharacterController = Character.GetComponent<CharacterController>();
+            CharacterAgent = GetComponent<NavMeshAgent>();
+
+            for (int i = 0; i < PlayerSkill.Length; i++)
             {
                 if (PlayerUsedSkillBar[i] != null)
-                    PlayerUsedSkillBarImage[i] = PlayerUsedSkillBar[i].GetComponent<Image>();
+                    foreach (Transform child in PlayerUsedSkillBar[i].transform)
+                    {
+                        if (child.name == "SkillCD")
+                            PlayerUsedSkillCD[i] = child.GetComponent<Image>();
+                        else if (child.name == "SkillUI")
+                            PlayerUsedSkillUI[i] = child.GetComponent<Image>();
+                    }
+            }
 
-                isSkillReady[i] = true;
+            //参数初始化
+            LoadEquip();
+            //EquipmentInformation();
 
-                //寻找Skill的子物体（正在使用的技能）
-                foreach (Transform child in PlayerSkill[i].transform)
+            PlayerHP = FinalCharacterInfos[0];
+            PlayerMP = FinalCharacterInfos[4];
+            /*for (int i = 0; i < PlayerSkill.Length; i++)
                 {
-                    if (child.tag == "Skill")
-                        PlayerUsingSkill[i] = child.gameObject;
-                }
+                    if (PlayerUsedSkillBar[i] != null)
+                        PlayerUsedSkillBarImage[i] = PlayerUsedSkillBar[i].GetComponent<Image>();
 
-                SkillCD[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().CoolDown;
-                SkillCDdeltaTime[i] = SkillCD[i] - 0.001f;
-                SkillDuration[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().Duration;
-                SkillMPCost[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().MPCost;
-            }*/
+                    isSkillReady[i] = true;
 
-        CharacterSpriteAnimator = CharacterSprite.GetComponent<Animator>();
-        ArmorAnimator = PlayerEquipment[3].GetComponent<Animator>();
-        CapAnimator = PlayerEquipment[2].GetComponent<Animator>();
+                    //寻找Skill的子物体（正在使用的技能）
+                    foreach (Transform child in PlayerSkill[i].transform)
+                    {
+                        if (child.tag == "Skill")
+                            PlayerUsingSkill[i] = child.gameObject;
+                    }
 
-        ItemLocalPosition = TakingItem.transform.localPosition;
-        CoinController();
+                    SkillCD[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().CoolDown;
+                    SkillCDdeltaTime[i] = SkillCD[i] - 0.001f;
+                    SkillDuration[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().Duration;
+                    SkillMPCost[i] = PlayerUsingSkill[i].GetComponent<SkillInfo>().MPCost;
+                }*/
+
+            CharacterSpriteAnimator = CharacterSprite.GetComponent<Animator>();
+            ArmorAnimator = PlayerEquipment[3].GetComponent<Animator>();
+            CapAnimator = PlayerEquipment[2].GetComponent<Animator>();
+
+            ItemLocalPosition = TakingItem.transform.localPosition;
+            CoinController();
+            SaveData();
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        //光标隐藏
-        /*if (Input.GetKey(KeyCode.LeftCommand) || CavasUI.GetComponent<UIController>().PackagePanel.activeSelf)
-        {
-            Cursor.visible = true;
-        }
-        else
-        {
-            Cursor.visible = false;
-        }*/
 
-        //选择框可见性
-        if (Input.GetKeyDown(KeyCode.Z))
+        //清空缓存 
+        canGetItemdeltaTime += Time.deltaTime;
+        if (canGetItemdeltaTime > 5 && canGetItem.Count > 0)
         {
-            UseChooser = !UseChooser;
+            canGetItem.Clear();
         }
-
-        //进入游戏禁止移动时间
-        if (StartdeltaTime > 0)
+        if (SceneManager.GetActiveScene().buildIndex != 0)
         {
-            xzCanMove = false;
-            StartdeltaTime -= Time.deltaTime;
-            if (StartdeltaTime <= 0)
+            //光标隐藏
+            /*if (Input.GetKey(KeyCode.LeftCommand) || CavasUI.GetComponent<UIController>().PackagePanel.activeSelf)
             {
-                xzCanMove = true;
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.visible = false;
+            }*/
+
+            //选择框可见性
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                UseChooser = !UseChooser;
+            }
+
+            //进入游戏禁止移动时间
+            if (StartdeltaTime > 0)
+            {
+                xzCanMove = false;
+                StartdeltaTime -= Time.deltaTime;
+                if (StartdeltaTime <= 0)
+                {
+                    xzCanMove = true;
+                    Cursor.visible = true;
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                //string jsonPath = Application.streamingAssetsPath + "/PlayerInfo.json";
+                //string jsonPath = Application.persistentDataPath + "/PlayerInfo.json";
+                //File.Delete(jsonPath);
+            }
+
+            if (GlobalVolume == null)
+            {
+                GlobalVolume = GameObject.FindGameObjectWithTag("GlobalVolume").GetComponent<Volume>();
+                GlobalVolume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
+                Gamelight = GlobalVolume.transform.parent.GetComponent<Light>();
+            }
+
+            TimeController();
+            //玩家进入场景位置
+            /*if (PlayerPositioninScene == null)
+            {
+                PlayerPositioninScene = GameObject.FindGameObjectWithTag("PlayerPositioninScene");
+                GetComponent<CharacterController>().enabled = false;
+                GetComponent<NavMeshAgent>().enabled = false;
+                transform.position = PlayerPositioninScene.transform.position;
+                GetComponent<CharacterController>().enabled = true;
+                GetComponent<NavMeshAgent>().enabled = true;
+            }*/
+
+            if (CanMove)
+            {
+                Move();
+                //激活相机后开始鼠标交互
+                if (Camera.main != null && !CavasUI.GetComponent<UIController>().isPause)
+                    MouseInteraction();
+            }
+
+            if (StartdeltaTime <= 0)
+                HPController();
+            else
+                GetDamage = 0;
+
+            if (PlayerHP > 0)
+            {
+                SkillController();
+                SitController();
+                AttackModelController();
+                TakingItemControllerSelf();
+            }
+
+
+            if (colorAdjustments.saturation.value > -100 && isGhost)
+            {
+                colorAdjustments.saturation.Override(Mathf.Clamp(Mathf.Lerp(a: colorAdjustments.saturation.value, b: -100, t: 3 * Time.deltaTime), -100f, 100f));
+            }
+            else if (colorAdjustments.saturation.value < 0 && !isGhost)
+            {
+                colorAdjustments.saturation.Override(Mathf.Clamp(Mathf.Lerp(a: colorAdjustments.saturation.value, b: 0, t: 3 * Time.deltaTime), -100f, 100f));
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.P))
+        if (isGhost)
         {
-            //string jsonPath = Application.streamingAssetsPath + "/PlayerInfo.json";
-            //string jsonPath = Application.persistentDataPath + "/PlayerInfo.json";
-            //File.Delete(jsonPath);
+            float MinDis = 100000;
+            int MinIdex = 0;
+            for (int i = 0; i < Cemetery.Length; i++)
+            {
+                if ((Cemetery[i].transform.position - transform.position).magnitude < MinDis)
+                {
+                    MinDis = (Cemetery[i].transform.position - transform.position).magnitude;
+                    MinIdex = i;
+                }
+            }
+            Vector3 Direction = (Cemetery[MinIdex].transform.position - transform.position).normalized;
+            if (Direction.x > 0)
+                GhostArrow.transform.eulerAngles = new Vector3(90, -90 + math.acos(Direction.normalized.z) / math.PI * 180, 0);
+            else
+            {
+                GhostArrow.transform.eulerAngles = new Vector3(90, 270 - math.acos(Direction.normalized.z) / math.PI * 180, 0);
+            }
+
         }
-
-        if (GlobalVolume == null)
-        {
-            GlobalVolume = GameObject.FindGameObjectWithTag("GlobalVolume").GetComponent<Volume>();
-            GlobalVolume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
-            Gamelight = GlobalVolume.transform.parent.GetComponent<Light>();
-        }
-
-        TimeController();
-        //玩家进入场景位置
-        /*if (PlayerPositioninScene == null)
-        {
-            PlayerPositioninScene = GameObject.FindGameObjectWithTag("PlayerPositioninScene");
-            GetComponent<CharacterController>().enabled = false;
-            GetComponent<NavMeshAgent>().enabled = false;
-            transform.position = PlayerPositioninScene.transform.position;
-            GetComponent<CharacterController>().enabled = true;
-            GetComponent<NavMeshAgent>().enabled = true;
-        }*/
-
-        if (CanMove)
-        {
-            Move();
-            //激活相机后开始鼠标交互
-            if (Camera.main != null)
-                MouseInteraction();
-        }
-
-        HPController();
-        if (PlayerHP > 0)
-        {
-            SkillController();
-            SitController();
-            AttackModelController();
-            TakingItemControllerSelf();
-        }
-
-
-        if (colorAdjustments.saturation.value > -100 && isGhost)
-        {
-            colorAdjustments.saturation.Override(Mathf.Clamp(Mathf.Lerp(a: colorAdjustments.saturation.value, b: -100, t: 3 * Time.deltaTime), -100f, 100f));
-        }
-        else if (colorAdjustments.saturation.value < 0 && !isGhost)
-        {
-            colorAdjustments.saturation.Override(Mathf.Clamp(Mathf.Lerp(a: colorAdjustments.saturation.value, b: 0, t: 3 * Time.deltaTime), -100f, 100f));
-        }
-
+        //CameraController();
+        Character.GetComponent<NavMeshAgent>().enabled = isGround;
+        //Debug.Log(isGround);
     }
 
+    private void CameraController()
+    {
+        if (VirtualCamera.transform.parent.GetComponent<ColliderTrigger>().isToched)
+        {
+            float newSizey = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
+            newSizey += 15f * Time.deltaTime;
+            float newSizez = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z += -15f * Time.deltaTime;
+            float newComposer = VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y += 3f * Time.deltaTime;
+            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSizey, 3, 9) * CameraY;
+            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z = Mathf.Clamp(newSizez, -12, -6);
+            VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y = Mathf.Clamp(newComposer, 0, 1.2f);
+        }
+    }
     public void TimeController()
     {
         //10分钟一天
         GameTime += Time.deltaTime / (Gamelight.intensity + 0.5f);
 
-        Gamelight.intensity = 4.01f - (1 + math.sin(-math.PI / 2 + GameTime / 10)) * 2f;
-        Gamelight.colorTemperature = 6000 + (1 + math.sin(-math.PI / 2 + GameTime / 10)) * 7000f;
+        Gamelight.intensity = 5.01f - (1 + math.sin(-math.PI / 2 + GameTime / 100)) * 2f;
+        Gamelight.colorTemperature = 6000 + (1 + math.sin(-math.PI / 2 + GameTime / 100)) * 7000f;
+
+
+        Clouds.transform.eulerAngles += new Vector3(0, 1, 0) * Time.deltaTime;
+
+        targetColor = 1.5f - (1 + math.sin(-math.PI / 2 + GameTime / 100)) / 2;
+
+        int ExposureID = Shader.PropertyToID("_Exposure");
+        skyboxMaterial.SetFloat(ExposureID, targetColor);
 
     }
 
@@ -536,6 +618,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isGhost)
         {
+            GhostArrow.SetActive(true);
             CharacterSprite.SetActive(false);
             GhostSprite.SetActive(true);
             allNPCController.NPCGhostUpdate();
@@ -546,9 +629,12 @@ public class PlayerController : MonoBehaviour
                 PlayerEquipment[i].SetActive(false);
             }
 
+            Cemetery = GameObject.FindGameObjectsWithTag("Cemetery");
+
         }
         if (PlayerHP > 0)
         {
+            GhostArrow.SetActive(false);
             BeAttackedSprite.SetActive(false);
             CharacterSprite.SetActive(true);
             GhostSprite.SetActive(false);
@@ -603,6 +689,8 @@ public class PlayerController : MonoBehaviour
         {
             PlayerUsedSkillUI[i].sprite = null;
             PlayerUsedSkillCD[i].fillAmount = 1;
+            ProfessionSprite.sprite = null;
+            ProfessionSprite.enabled = false;
             packageController.EquipSkillButton[i].GetComponent<Image>().sprite = null;
             foreach (Transform child in PlayerSkill[i].transform)
             {
@@ -610,6 +698,8 @@ public class PlayerController : MonoBehaviour
             }
             if (PlayerProfession != 0)
             {
+                ProfessionSprite.sprite = SkillStoreProfession[PlayerProfession - 1].GetComponent<SpriteRenderer>().sprite;
+                ProfessionSprite.enabled = true;
                 foreach (Transform child in SkillStoreProfession[PlayerProfession - 1].transform)
                 {
                     if (PlayerUsedSkillPosition[PlayerProfession, child.GetComponent<SkillInfo>().SkillID] == i + 1)
@@ -741,7 +831,7 @@ public class PlayerController : MonoBehaviour
             CharacterSpriteAnimator.SetBool("isAttack", false);
             ArmorAnimator.SetBool("isAttack", false);
         }
-        if ((Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.J)) && AttackModel == 1 && PlayerMP > 5 && HitAim != null && (HitAim.transform.position - transform.position).magnitude < (float)FinalCharacterInfos[6] / 4 && isChooseItem && (HitAim.tag == "Enemy" || HitAim.tag == "NPCNeutrality") && PlayerAttackIntervaldeltaTime > (float)FinalCharacterInfos[5] / 10)
+        if ((Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.J)) && AttackModel == 1 && PlayerMP > 3 && HitAim != null && (HitAim.transform.position - transform.position).magnitude < (float)FinalCharacterInfos[6] / 4 && isChooseItem && (HitAim.tag == "Enemy" || HitAim.tag == "NPCNeutrality") && PlayerAttackIntervaldeltaTime > (float)FinalCharacterInfos[5] / 10)
         {
             PlayerMP -= 3;
             PlayerAttackIntervaldeltaTime = 0;
@@ -810,9 +900,10 @@ public class PlayerController : MonoBehaviour
                 NormalAttack[0].transform.eulerAngles = new Vector3(-90, 180 - math.acos((-gameObject.transform.position + HitPos).normalized.z) / math.PI * 180, 0);
             }
 
-            NormalAttack[0].transform.localScale = new Vector3(1, 1, 1) * (float)FinalCharacterInfos[6] / 8;
+            NormalAttack[0].transform.localScale = new Vector3(1, 1, 1) * FinalCharacterInfos[6] / 8;
             NormalAttack[0].GetComponent<NormalAttackTrigger>().NearAttackDisdeltaTime = 0.2f;
             NormalAttack[0].SetActive(true);
+            isGround = false;
         }
         PlayerEquipment[0].SetActive(!NormalAttack[0].activeSelf);
         if (isGhost)
@@ -829,7 +920,7 @@ public class PlayerController : MonoBehaviour
     {
         if (BeAttackedDirection.magnitude > 0.01)
         {
-            BeAttackedDirection *= 0.95f;
+            BeAttackedDirection *= 0.97f;
         }
         else
         {
@@ -842,7 +933,6 @@ public class PlayerController : MonoBehaviour
             ArmorAnimator.SetBool("isAttacked", true);
 
             BeAttackedIntervaldeltaTime += Time.deltaTime;
-
             //VirtualCamera.m_Lens.Dutch = (float)(math.sin(Time.time * 100) * BeAttackedIntervaldeltaTime * 2);
             if (BeAttackedIntervaldeltaTime > 0.15f)
             {
@@ -856,7 +946,13 @@ public class PlayerController : MonoBehaviour
             }
 
         }
-        if (GetDamage != 0 && BeAttackedIntervaldeltaTime > 0.15f)
+
+        if (BeAttackedIntervaldeltaTime > 0.15f && BeAttackedIntervaldeltaTime <= 0.4f)
+        {
+            BeAttackedIntervaldeltaTime += Time.deltaTime;
+        }
+
+        if (GetDamage != 0 && BeAttackedIntervaldeltaTime > 0.4f)
         {
             RealGetDamage = (int)(GetDamage - FinalCharacterInfos[2]);
             if (RealGetDamage < 1)
@@ -877,6 +973,10 @@ public class PlayerController : MonoBehaviour
             DamageFigureIns.color = new Color(1, 0, 0);//red
             DamageFigureIns.gameObject.SetActive(true);
             PlayerHP -= RealGetDamage;
+            GetDamage = 0;
+        }
+        else
+        {
             GetDamage = 0;
         }
         if (PlayerHP <= 0)
@@ -996,7 +1096,7 @@ public class PlayerController : MonoBehaviour
                 PlayerEquipment[2].transform.localEulerAngles = new Vector3(0, 0, 0);
                 //皮肤切换以及重加载
                 CharacterskeletonMecanim.skeleton.SetSkin("1");
-                if (ArmorAnimator.gameObject.GetComponent<MeshRenderer>().enabled)
+                if (ArmorAnimator.gameObject.GetComponent<MeshRenderer>().enabled && EquipArmorID != 0)
                     ArmorskeletonMecanim.skeleton.SetSkin(EquipArmorID.ToString() + "A");
                 CharacterskeletonMecanim.skeleton.SetSlotsToSetupPose();
                 ArmorskeletonMecanim.skeleton.SetSlotsToSetupPose();
@@ -1013,7 +1113,7 @@ public class PlayerController : MonoBehaviour
                 PlayerEquipment[2].transform.localEulerAngles = new Vector3(0, 180, 0);
                 //皮肤切换以及重加载
                 CharacterskeletonMecanim.skeleton.SetSkin("2");
-                if (ArmorAnimator.gameObject.GetComponent<MeshRenderer>().enabled)
+                if (ArmorAnimator.gameObject.GetComponent<MeshRenderer>().enabled && EquipArmorID != 0)
                     ArmorskeletonMecanim.skeleton.SetSkin(EquipArmorID.ToString() + "B");
                 CharacterskeletonMecanim.skeleton.SetSlotsToSetupPose();
                 ArmorskeletonMecanim.skeleton.SetSlotsToSetupPose();
@@ -1060,11 +1160,19 @@ public class PlayerController : MonoBehaviour
         }
 
 
+        if (ySpeed > 0)
+        {
+            isGround = false;
+        }
 
         if (!isGround)
+        {
             ySpeed -= 40f * Time.deltaTime;
+            CharacterAgent.Warp(transform.position);
+        }
         else if (ySpeed < 0)
         {
+            CharacterAgent.Warp(transform.position);
             if (ySpeed < -JumpSpeed)
                 for (int i = 0; i < 10; i++)
                 {
@@ -1131,41 +1239,54 @@ public class PlayerController : MonoBehaviour
             }
         }
         //鼠标控制视角旋转
-        if (Input.GetMouseButton(0))
+        if (!CavasUI.GetComponent<UIController>().isPause)
         {
-            float mouseX = Input.GetAxis("Mouse X");
-            this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * mouseX * 15, 0);
-            float mouseY = Input.GetAxis("Mouse Y");
-            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
-            CameraY += RotateSpeed * Time.deltaTime * mouseY * 0.2f;
-            CameraY = Mathf.Clamp(CameraY, 0.2f, 1);
-            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y * CameraY;
-            VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY -= RotateSpeed * Time.deltaTime * mouseY * 0.025f;
-            VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY = Mathf.Clamp(VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY, 0.5f, 0.6f);
+            if (Input.GetMouseButton(0))
+            {
+                float mouseX = Input.GetAxis("Mouse X");
+                mouseX = Mathf.Clamp(mouseX, -1, 1);
+                this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * mouseX * 15, 0);
+
+                if (canMoveCamera)
+                {
+                    float mouseY = -Input.GetAxis("Mouse Y") * 0.8f;
+                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
+                    CameraY += RotateSpeed * Time.deltaTime * mouseY * 0.2f;
+                    CameraY = Mathf.Clamp(CameraY, 0.25f, 1);
+                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y * CameraY;
+                    VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY -= RotateSpeed * Time.deltaTime * mouseY * 0.025f;
+                    VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY = Mathf.Clamp(VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY, 0.5f, 0.6f);
+                }
+            }
+
+            //视角旋转
+            if (Input.GetKey(KeyCode.Q))
+            {
+                this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
+            }
+
+            if (Input.GetKey(KeyCode.E))
+            {
+                this.transform.eulerAngles -= new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
+            }
+
+            if (canMoveCamera)
+            {
+                float scroll = Input.GetAxis("Mouse ScrollWheel");
+                if (scroll != 0)
+                {
+                    float newSizey = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
+                    newSizey += -scroll * 1.5f;
+                    float newSizez = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z += scroll * 1.5f;
+                    float newComposer = VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y += -scroll * 0.2f;
+                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSizey, 3, 9) * CameraY;
+                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z = Mathf.Clamp(newSizez, -12, -6);
+                    VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y = Mathf.Clamp(newComposer, 0.4f, 1.2f);
+
+                }
+            }
         }
 
-        //视角旋转
-        if (Input.GetKey(KeyCode.Q))
-        {
-            this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
-        }
-
-        if (Input.GetKey(KeyCode.E))
-        {
-            this.transform.eulerAngles -= new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
-        }
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0)
-        {
-            float newSizey = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
-            newSizey += -scroll * 1.5f;
-            float newSizez = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z += scroll * 1.5f;
-            float newComposer = VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y += -scroll * 0.3f;
-            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSizey, 3, 9) * CameraY;
-            VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z = Mathf.Clamp(newSizez, -12, -6);
-            VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y = Mathf.Clamp(newComposer, 0, 1.2f);
-
-        }
 
         if (CharacterController.enabled)
         {
@@ -1194,7 +1315,7 @@ public class PlayerController : MonoBehaviour
                 if (Input.GetMouseButtonDown(0))
                 {
                     HitUIAim.transform.parent.gameObject.SetActive(false);
-                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isinTeam = !HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isinTeam;
+                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isinTeam = !HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isinTeam;
                     HitUIAim.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
                     HitUIAim = null;
                 }
@@ -1208,7 +1329,7 @@ public class PlayerController : MonoBehaviour
                 if (Input.GetMouseButtonDown(0))
                 {
                     HitUIAim.transform.parent.gameObject.SetActive(false);
-                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isTask = true;
+                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isTask = true;
                     HitUIAim.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
                     HitUIAim = null;
                 }
@@ -1220,7 +1341,7 @@ public class PlayerController : MonoBehaviour
                 HitUIAim = hit.collider.gameObject;
                 if (Input.GetMouseButtonDown(0))
                 {
-                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isTask = false;
+                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isTask = false;
                     HitUIAim.transform.parent.gameObject.transform.parent.GetComponent<Task>().TaskRewardController();
                     HitUIAim = null;
                 }
@@ -1234,8 +1355,8 @@ public class PlayerController : MonoBehaviour
                 if (Input.GetMouseButtonDown(0))
                 {
                     HitUIAim.transform.parent.gameObject.SetActive(false);
-                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isTrade = true;
-                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().NPCTradeController();
+                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().isTrade = true;
+                    HitUIAim.transform.parent.gameObject.transform.parent.gameObject.transform.parent.gameObject.transform.parent.GetComponent<FNPCInfo>().NPCTradeController();
                     HitUIAim.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
                     HitUIAim = null;
                 }
@@ -1348,7 +1469,12 @@ public class PlayerController : MonoBehaviour
             }*/
         }
         if (HitAim != null)
+        {
+            if (isBattle)
+                isChooseItem = true;
             Chooser.transform.position = HitAim.transform.position;
+        }
+
     }
 
     private void SkillController()
@@ -1457,7 +1583,7 @@ public class PlayerController : MonoBehaviour
         //能量
         list.playerInfos[ArchiveID].CharacterInfos[4] = 20;
         //攻速
-        list.playerInfos[ArchiveID].CharacterInfos[5] = 5;
+        list.playerInfos[ArchiveID].CharacterInfos[5] = 3;
         //攻击范围
         list.playerInfos[ArchiveID].CharacterInfos[6] = 5;
         //能量恢复
@@ -1468,18 +1594,25 @@ public class PlayerController : MonoBehaviour
         list.playerInfos[ArchiveID].CharacterInfos[11] = 100;
         //击退
         list.playerInfos[ArchiveID].CharacterInfos[13] = 5;
-        for (int i = 0; i < CharacterInfos.Length; i++)
+        for (int i = 0; i < list.playerInfos[ArchiveID].CharacterInfos.Length; i++)
         {
             list.playerInfos[ArchiveID].FinalCharacterInfos[i] = list.playerInfos[ArchiveID].CharacterInfos[i];
+            FinalCharacterInfos[i] = list.playerInfos[ArchiveID].CharacterInfos[i];
+            //Debug.Log(list.playerInfos[ArchiveID].FinalCharacterInfos[i]);
         }
-
+        list.playerInfos[ArchiveID].isSit = true;
     }
 
     //数据保存
     public void SaveData()
     {
         if (SceneManager.GetActiveScene().buildIndex == 1)
+        {
             CharacterA.PlayerPosition = gameObject.transform.position;
+            CharacterA.PlayerRotation = gameObject.transform.eulerAngles;
+        }
+
+
 
         for (int i = 0; i < CharacterInfos.Length; i++)
         {
@@ -1498,7 +1631,8 @@ public class PlayerController : MonoBehaviour
         CharacterA.NewestDate = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString();
 
         string json = JsonUtility.ToJson(list, true);
-        string filepath = Application.streamingAssetsPath + "/PlayerInfo.json";
+        //string filepath = Application.streamingAssetsPath + "/PlayerInfo.json";
+        string filepath = Application.persistentDataPath + "/PlayerInfo.json";
 
         using (StreamWriter sw = new StreamWriter(filepath))
         {
@@ -1512,7 +1646,8 @@ public class PlayerController : MonoBehaviour
     public void LoadData(int ArchiveID)
     {
         string json;
-        string filepath = Application.streamingAssetsPath + "/PlayerInfo.json";
+        //string filepath = Application.streamingAssetsPath + "/PlayerInfo.json";
+        string filepath = Application.persistentDataPath + "/PlayerInfo.json";
         // Debug.Log(filepath);
         if (File.Exists(filepath))
         {
@@ -1534,7 +1669,8 @@ public class PlayerController : MonoBehaviour
                 {
                     Character.GetComponent<CharacterController>().enabled = false;
                     Character.GetComponent<NavMeshAgent>().enabled = false;
-                    gameObject.transform.position = CharacterA.PlayerPosition + new Vector3(0, 1, 0);
+                    gameObject.transform.position = CharacterA.PlayerPosition;
+                    gameObject.transform.eulerAngles = CharacterA.PlayerRotation;
                     Character.GetComponent<CharacterController>().enabled = true;
                     Character.GetComponent<NavMeshAgent>().enabled = true;
                 }
@@ -1542,6 +1678,8 @@ public class PlayerController : MonoBehaviour
                 for (int i = 0; i < CharacterInfos.Length; i++)
                 {
                     CharacterInfos[i] = CharacterA.CharacterInfos[i];
+                    FinalCharacterInfos[i] = CharacterA.FinalCharacterInfos[i];
+                    //Debug.Log(FinalCharacterInfos[i]);
                 }
                 GameTime = CharacterA.GameTime;
                 EquipmentID = CharacterA.EquipmentID;
@@ -1566,7 +1704,8 @@ public class PlayerController : MonoBehaviour
     void LoadArchive()
     {
         string json;
-        string filepath = Application.streamingAssetsPath + "/ArchiveInfo.json";
+        //string filepath = Application.streamingAssetsPath + "/ArchiveInfo.json";
+        string filepath = Application.persistentDataPath + "/ArchiveInfo.json";
 
         if (File.Exists(filepath))
         {
@@ -1576,7 +1715,8 @@ public class PlayerController : MonoBehaviour
                 sr.Close();
             }
 
-            //ArchiveID = JsonUtility.FromJson<ArchiveInfoList>(json).ArchiveInfos[0].ArchiveID;
+            //仅场景测试时注释！！！！！！！！
+            ArchiveID = JsonUtility.FromJson<ArchiveInfoList>(json).ArchiveInfos[0].ArchiveID;
 
         }
     }

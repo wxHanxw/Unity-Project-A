@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class InteractionAction : MonoBehaviour
 {
@@ -10,7 +11,10 @@ public class InteractionAction : MonoBehaviour
     public Vector3 PosShift;
     void Start()
     {
-
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            enabled = false;
+        }
     }
 
     // Update is called once per frame

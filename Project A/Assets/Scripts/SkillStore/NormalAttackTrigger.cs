@@ -19,12 +19,14 @@ public class NormalAttackTrigger : MonoBehaviour
     public int NearAttackMode = 0;
     public String FarAttackName = "FarAttack";
 
-    [Header("远程模式: (0)加速追踪 (1)平抛 (2)上抛 (3)回旋")]
+    [Header("远程模式: (0)加速追踪 (1)平抛 (2)上抛 (3)回旋 (4)直射")]
     public int FarAttackMode = 0;
+    public GameObject AttackParticle;
     public bool canRetain = false;
     public float FarAttackRand;
 
     public GameObject TraceParticle;
+    public GameObject ColliderParticle;
     public bool willDisappear = true;
 
     public float YSpeed = 5;
@@ -47,11 +49,20 @@ public class NormalAttackTrigger : MonoBehaviour
     public GameObject Holder;
     public GameObject DamageParticle;
 
+    private float AttackIntervaldeltaTime = 0.3f;
+
 
     // Start is called before the first frame update
     void Start()
     {
-
+        if (isFarAttack && gameObject.name != FarAttackName)
+        {
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource != null)
+            {
+                audioSource.enabled = true;
+            }
+        }
     }
 
     // Update is called once per frame
@@ -64,14 +75,19 @@ public class NormalAttackTrigger : MonoBehaviour
         if (isFarAttack && gameObject.name != FarAttackName && !isGround)
         {
             System.Random random = new System.Random();
-            GameObject Ins = Instantiate(TraceParticle, transform.position, transform.rotation);
-            Ins.transform.localScale = TraceParticle.transform.lossyScale * ((float)random.NextDouble() / 1.5f + 0.5f);
-            Ins.SetActive(true);
+            if (TraceParticle != null)
+            {
+                GameObject Ins = Instantiate(TraceParticle, transform.position, transform.rotation);
+                Ins.transform.localScale = TraceParticle.transform.lossyScale * ((float)random.NextDouble() / 1.5f + 0.5f);
+                Ins.SetActive(true);
+            }
+
         }
 
 
         if (!isFarAttack)
         {
+            AttackIntervaldeltaTime += Time.deltaTime;
             if (NearAttackDisdeltaTime >= 0)
             {
                 if (NearAttackMode == 1)
@@ -99,6 +115,10 @@ public class NormalAttackTrigger : MonoBehaviour
                     AttackParticleIns[i].transform.localScale = gameObject.transform.lossyScale;
                     AttackParticleIns[i].GetComponent<SpriteRenderer>().enabled = true;
                     AttackParticleIns[i].GetComponent<Collider>().enabled = true;
+                    if (AttackParticleIns[i].GetComponent<NormalAttackTrigger>().AttackParticle != null)
+                    {
+                        AttackParticleIns[i].GetComponent<NormalAttackTrigger>().AttackParticle.SetActive(true);
+                    }
 
                     AttackingAim[i] = AttackAim;
                     ySpeed[i] = YSpeed;
@@ -152,6 +172,10 @@ public class NormalAttackTrigger : MonoBehaviour
                         Destroy(AttackParticleIns[i]);
                     }
                 }
+                else if (FarAttackMode == 4)
+                {
+                    AttackParticleIns[i].transform.position += Direction[i] * BulletdeltaTime[i] * BulletSpeed * Time.deltaTime;
+                }
                 BulletdeltaTime[i] += Time.deltaTime;
             }
 
@@ -164,6 +188,19 @@ public class NormalAttackTrigger : MonoBehaviour
     {
         if (other.tag == "Ground" && isFarAttack && gameObject.name != FarAttackName)
         {
+            if (ColliderParticle != null)
+                for (int i = 0; i < 10; i++)
+                {
+                    GameObject Ins = Instantiate(ColliderParticle, transform.position, transform.rotation);
+                    System.Random random = new System.Random();
+                    if (i == 0)
+                    {
+                        //Ins.GetComponent<AudioSource>().enabled = true;
+                    }
+                    Ins.transform.localScale = ColliderParticle.transform.lossyScale * ((float)random.NextDouble() / 1.5f + 0.5f);
+                    Ins.SetActive(true);
+                }
+
             if (!canRetain)
                 Destroy(gameObject);
             else
@@ -174,8 +211,9 @@ public class NormalAttackTrigger : MonoBehaviour
         }
         if (other.tag == "Character" && toPlayer)
         {
-            if (gameObject.name != FarAttackName)
+            if (gameObject.name != FarAttackName && (AttackIntervaldeltaTime > 0.25f || isFarAttack))
             {
+                AttackIntervaldeltaTime = 0;
                 other.gameObject.GetComponent<PlayerController>().BeAttackedDirection = (other.transform.position - gameObject.transform.position).normalized * BeatBack / 150 * Time.deltaTime;
                 other.gameObject.GetComponent<PlayerController>().GetDamage = Damage;
 
@@ -220,10 +258,13 @@ public class NormalAttackTrigger : MonoBehaviour
             if (Holder.tag == "Character")
             {
                 if (!isFarAttack)
-                    Holder.GetComponent<PlayerController>().PlayerMP += 1;
-                Holder.GetComponent<PlayerController>().PlayerMP = math.min(Holder.GetComponent<PlayerController>().PlayerMP, Holder.GetComponent<PlayerController>().FinalCharacterInfos[4]);
-                Holder.GetComponent<PlayerController>().BeAttackedDirection = -(other.transform.position - gameObject.transform.position).normalized * BeatBack * Holder.GetComponent<PlayerController>().FinalCharacterInfos[3] * Time.deltaTime / 800;
-                Holder.GetComponent<PlayerController>().BeAttackedDirection.y = 0;
+                {
+                    //Holder.GetComponent<PlayerController>().PlayerMP += 1;
+                    //Holder.GetComponent<PlayerController>().PlayerMP = math.min(Holder.GetComponent<PlayerController>().PlayerMP, Holder.GetComponent<PlayerController>().FinalCharacterInfos[4]);
+                    //Holder.GetComponent<PlayerController>().BeAttackedDirection = -(other.transform.position - gameObject.transform.position).normalized * BeatBack * Holder.GetComponent<PlayerController>().FinalCharacterInfos[3] * Time.deltaTime / 800;
+                    //Holder.GetComponent<PlayerController>().BeAttackedDirection.y = 0;
+                }
+
             }
 
             other.gameObject.GetComponent<EnemyInfo>().BeAttackedDeriction = (other.transform.position - gameObject.transform.position).normalized * BeatBack * 2 * Time.deltaTime;

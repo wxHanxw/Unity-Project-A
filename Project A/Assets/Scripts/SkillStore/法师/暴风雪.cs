@@ -38,7 +38,7 @@ public class 暴风雪 : MonoBehaviour
                 StartTime[i] = 0.025f * (1 + (float)random.NextDouble() / 2);
             }
             else
-                StartTime[i] = StartTime[i - 1] + 0.02f * (1 + (float)random.NextDouble() / 2);
+                StartTime[i] = StartTime[i - 1] + 0.05f * (1 + (float)random.NextDouble() / 2);
         }
         GetComponent<SkillInfo>().isRefresh = true;
 
@@ -90,6 +90,7 @@ public class 暴风雪 : MonoBehaviour
                             System.Random randomA = new System.Random();
                             float Angle = (float)randomA.NextDouble() * 2 * (float)Math.PI;
                             StoneIns[i] = Instantiate(StoneSample, StartPosition + new Vector3((float)Radius * math.sin(Angle), 0, (float)Radius * math.cos(Angle)), StoneSample.transform.rotation);
+                            StoneIns[i].SetActive(true);
                             Index += 1;
                         }
                         if (StoneIns[i] != null)

@@ -157,7 +157,7 @@ Material:
     - _GradientEnabled: 0
     - _GradientSize: 10
     - _GradientSpace: 0
-    - _LightContribution: 0.5
+    - _LightContribution: 0.3
     - _LightFalloffSize: 0.3
     - _LightmapDirectionPitch: 0
     - _LightmapDirectionYaw: 0
@@ -190,7 +190,7 @@ Material:
     - _UnityShadowMode: 1
     - _UnityShadowOcclusion: 0
     - _UnityShadowPower: 0.7
-    - _UnityShadowSharpness: 8.71
+    - _UnityShadowSharpness: 8.33
     - _VertexColorsEnabled: 0
     - _VertexExtrusionSmoothNormals: 0
     - _WorkflowMode: 1

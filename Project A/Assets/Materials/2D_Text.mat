@@ -179,8 +179,8 @@ Material:
     - _GradientSize: 10
     - _GradientSpace: 0
     - _HEIGHT_ENABLED: 0
-    - _LightContribution: 0.5
-    - _LightFalloffSize: 0.2
+    - _LightContribution: 0.2
+    - _LightFalloffSize: 0.8
     - _LightmapDirectionPitch: 0
     - _LightmapDirectionYaw: 0
     - _MaxHeight: 0.5

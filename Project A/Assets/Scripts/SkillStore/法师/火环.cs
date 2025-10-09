@@ -17,6 +17,7 @@ public class 火环 : MonoBehaviour
     {
         GetComponent<SkillInfo>().isPre = false;
 
+        gameObject.transform.eulerAngles += new Vector3(0, 1000, 0) * Time.deltaTime;
         DurationdeltaTime += Time.deltaTime;
         if (DurationdeltaTime > GetComponent<SkillInfo>().Duration)
         {
@@ -27,7 +28,7 @@ public class 火环 : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Enemy")
+        if (other.tag == "Enemy" || other.tag == "NPCNeutrality")
             other.GetComponent<EnemyInfo>().GetDamage = Damage;
     }
 

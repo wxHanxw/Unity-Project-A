@@ -11,10 +11,14 @@ public class DispersedParticle : MonoBehaviour
     public float ParticleSpeed = 0;
     public float ParticleRange = 0;
 
+    private AudioSource audioSource;
+
     public string NotDisdroyName = "DispersedParticle";
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
+
         System.Random random = new System.Random();
         if (needRandom)
         {
@@ -32,6 +36,10 @@ public class DispersedParticle : MonoBehaviour
     {
         if (name != NotDisdroyName)
         {
+            if (audioSource != null)
+            {
+                audioSource.volume -= Time.deltaTime * 2;
+            }
             GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, 1) * Time.deltaTime * DispersedSpeed;
             transform.localScale = transform.localScale * ScaleVariateSpeed;
             if (ParticleSpeed > 0)

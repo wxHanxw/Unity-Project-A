@@ -8,9 +8,15 @@ public class CaseController : MonoBehaviour
     public GameObject Camera;
     public bool NeedRotate = true;
     public GameObject HintTexture;
+
+    public Animator animator;
+
+    public AudioSource AudioOpen, AudioClose;
     private Vector3 InitialPosition;
     private GameObject Character;
     private UIController uIController;
+
+    private float OpenIntervaldeltaTime = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -29,10 +35,33 @@ public class CaseController : MonoBehaviour
             HintTexture.transform.position = InitialPosition + 0.1f * new Vector3(0, math.sin(10 * Time.time), 0);
         }
 
-        if (Input.GetKeyDown(KeyCode.F) && HintTexture.activeSelf && Character.GetComponent<PlayerController>().canGetItem.Count == 1 && Character.GetComponent<PlayerController>().canGetItem[0] == gameObject)
+        //&& Character.GetComponent<PlayerController>().canGetItem.Count == 1 && Character.GetComponent<PlayerController>().canGetItem[0] == gameObject
+        if (Input.GetKeyDown(KeyCode.F) && HintTexture.activeSelf)
         {
-            uIController.isCase = true;
-            uIController.BagController();
+            if (!animator.GetBool("isOpen"))
+            {
+                OpenIntervaldeltaTime = 0;
+                animator.SetBool("isOpen", true);
+                AudioOpen.enabled = false;
+                AudioOpen.enabled = true;
+            }
+            else
+            {
+                OpenIntervaldeltaTime = 0.5999f;
+            }
+
+
+        }
+
+        if (OpenIntervaldeltaTime < 0.6f && animator.GetBool("isOpen"))
+        {
+            OpenIntervaldeltaTime += Time.deltaTime;
+            if (OpenIntervaldeltaTime >= 0.6f)
+            {
+                uIController.isCase = true;
+                uIController.BagController();
+            }
+
         }
 
         //交互提示
@@ -56,7 +85,15 @@ public class CaseController : MonoBehaviour
             Character.GetComponent<PlayerController>().canGetItem.Remove(gameObject);
             if (HintTexture.activeSelf)
             {
-                uIController.PackagePanel.SetActive(false);
+                if (animator.GetBool("isOpen"))
+                {
+                    uIController.PackagePanel.SetActive(false);
+                    animator.SetBool("isOpen", false);
+                    AudioClose.enabled = false;
+                    AudioClose.enabled = true;
+                    OpenIntervaldeltaTime = 0;
+                }
+
                 uIController.isCase = false;
                 HintTexture.SetActive(false);
             }

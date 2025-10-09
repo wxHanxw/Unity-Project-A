@@ -654,6 +654,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &13982816
 GameObject:
@@ -1577,12 +1581,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ItemID: 0
   ItemNum: 1
+  ItemSize: 5
+  ChooserHight: 0
   EquipType: 1
+  EquipProfession: 0
+  AttackType: 0
+  AttackRange: 1
+  AttackSpeed: 10
+  BeatBack: 1
   Attack: 0
   Defence: 0
   MaxHP: 10
   MaxMP: 0
   Speed: 0
+  SellPrice: 10
+  BuyPrice: 20
+  canGet: 1
+  canForceGet: 0
+  canDrop: 0
+  isGround: 1
+  Velocity: {x: 0, y: 0, z: 0}
+  ForceGetHolder: {fileID: 0}
+  HealHP: 0
 --- !u!212 &23057581
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -3717,52 +3737,37 @@ MonoBehaviour:
   PlayerMoveSpeed: 5
   RotateSpeed: 30
   JumpSpeed: 0.08
+  CameraY: 1
+  UseChooser: 1
   GetDamage: 0
   GetHeal: 0
   Footprint: {fileID: 662115414}
+  toGroundParticle: {fileID: 0}
+  JumpSFX: {fileID: 0}
   CharacterInfoUI:
   - {fileID: 499194506}
   - {fileID: 1446520957}
   - {fileID: 1104386516}
   - {fileID: 263402834}
-  CharacterMaxHP: 10
-  CharacterMaxMP: 5
-  CharacterAttack: 1
-  CharacterAttackRange: 20
-  CharacterDefence: 0
-  CharacterAttackInterval: 1
-  CharacterRegainHP: 1
-  CharacterRegainMP: 1
-  CharacterMoveSpeed: 5
-  EquipMaxHP: 0
-  EquipMaxMP: 0
-  EquipAttack: 0
-  EquipAttackRange: 0
-  EquipDefence: 0
-  EquipAttackInterval: 0
-  EquipRegainHP: 0
-  EquipRegainMP: 0
-  EquipMoveSpeed: 0
-  PlayerMaxHP: 10
-  PlayerMaxMP: 5
-  PlayerAttack: 1
-  PlayerAttackRange: 5
-  PlayerDefence: 0
-  PlayerAttackInterval: 2
-  PlayerRegainHP: 0
-  PlayerRegainMP: 0
-  PlayerArmor: 0
-  PlayerCritRate: 0.05
-  PlayerCritDamage: 1
+  CharacterInfos: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  EquipCharacterInfos: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  FinalCharacterInfos: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   PlayerHP: 0
   PlayerMP: 0
+  GhostArrow: {fileID: 0}
+  TotalCoin: 0
   CopperCoin: 0
   SilverCoin: 0
   GoldCoin: 0
   Diamond: 0
+  TradeCoin: []
+  TradeBar: {fileID: 0}
   TakingItem: {fileID: 1947584044}
   ItemNum: {fileID: 1582506467}
   DamageFigure: {fileID: 1634281598}
+  canGetItem: []
+  PlayerProfession: 0
+  SkillStoreProfession: []
   PlayerSkill:
   - {fileID: 1790381474}
   - {fileID: 2007519467}
@@ -3777,7 +3782,7 @@ MonoBehaviour:
   - {fileID: 565295943}
   - {fileID: 1918207686}
   - {fileID: 1997497172}
-  isSkillingAny: 0
+  PlayerEquipmentAll: {fileID: 0}
   PlayerEquipment:
   - {fileID: 628254909}
   - {fileID: 1592334479}
@@ -3786,18 +3791,53 @@ MonoBehaviour:
   Character: {fileID: 86364610}
   Chooser: {fileID: 761972543}
   VirtualCamera: {fileID: 171032579}
-  NormalAttack: {fileID: 775338034}
+  packageController: {fileID: 0}
+  NormalAttack:
+  - {fileID: 0}
+  BeAttackedDirection: {x: 0, y: 0, z: 0}
   CharacterSprite: {fileID: 1021247536}
+  CharacterSpriteAnimator: {fileID: 0}
+  ArmorAnimator: {fileID: 0}
+  CapAnimator: {fileID: 0}
+  CharacterSpriteBack: {fileID: 0}
+  CharacterSitSprite: {fileID: 0}
+  SitdeltaTime: 0
+  MainSprite: {fileID: 0}
+  BeAttackedSprite: {fileID: 0}
+  CharacterWeapon: {fileID: 0}
   CavasUI: {fileID: 454517972}
   HitAim: {fileID: 0}
   HitUIAim: {fileID: 0}
+  HitParticle: {fileID: 0}
   isGround: 0
+  isWater: 0
   isChooseItem: 0
-  isDead: 0
+  isGhost: 0
+  isSit: 0
   isMouseMove: 0
   isKeyBoardMove: 0
   CanMove: 1
+  xzCanMove: 1
+  canMoveCamera: 1
   isBattle: 0
+  ySpeed: 0
+  CharacterController: {fileID: 0}
+  ChooserVelocity: {x: 0, y: 0, z: 0}
+  GhostSprite: {fileID: 0}
+  GhostSpriteBack: {fileID: 0}
+  allNPCController: {fileID: 0}
+  EquipmentID: 00000000000000000000000000000000
+  BagItemID: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  BagItemNum: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  CaseItemID: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  CaseItemNum: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  EquipmentStore: {fileID: 0}
+  ItemStore: {fileID: 0}
+  ArchiveID: 0
+  CharacterSpriteID: 201
+  skyboxMaterial: {fileID: 0}
+  Clouds: {fileID: 0}
+  CursorIcon: {fileID: 0}
 --- !u!1 &91436251
 GameObject:
   m_ObjectHideFlags: 0
@@ -4338,8 +4378,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 3
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b24dfbb145aa647599852b2268164561, type: 2}
-  m_sharedMaterial: {fileID: -8576983485713310320, guid: b24dfbb145aa647599852b2268164561,
+  m_fontAsset: {fileID: 11400000, guid: f883dd1f3977045c2a14ae31717c19b9, type: 2}
+  m_sharedMaterial: {fileID: -2842231182346725187, guid: f883dd1f3977045c2a14ae31717c19b9,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -6341,6 +6381,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 3
   CoolDown: 2
   Duration: 3
@@ -8205,6 +8248,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Character: {fileID: 86364610}
+  playerController: {fileID: 0}
   InfoImage: {fileID: 1798342055}
   PackagePage: {fileID: 1550922241}
   CharacterInfoPage: {fileID: 461605629}
@@ -8217,16 +8261,21 @@ MonoBehaviour:
   - {fileID: 839682906}
   - {fileID: 999371606}
   - {fileID: 792659318}
+  EquipSkillButton: []
   CharacterEquip:
   - {fileID: 628254909}
   - {fileID: 1592334479}
   - {fileID: 1273155682}
   - {fileID: 1402648778}
   ItemInfoPanel: {fileID: 0}
+  AllBagSpace: {fileID: 0}
+  AllCaseSpace: {fileID: 0}
   BagItemButton: []
+  CaseItemButton: []
   BagItemIndex: 0
   EquipItemIndex: 0
   EquipIndex: 0
+  CaseItemIndex: 0
 --- !u!1 &188072053
 GameObject:
   m_ObjectHideFlags: 0
@@ -8777,7 +8826,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &200330934
@@ -11508,6 +11557,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 3
   CoolDown: 2
   Duration: 7
@@ -14617,6 +14669,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 0.1
   CoolDown: 2
   Duration: 5
@@ -14998,6 +15053,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &327813851
 GameObject:
@@ -15890,6 +15949,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &343874368
 GameObject:
@@ -16027,6 +16090,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &344903301
 GameObject:
@@ -16194,7 +16261,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &350351856
@@ -17452,15 +17519,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Damage: 0
+  BeatBack: 1
+  InitialPositionShift: {x: 0, y: 0, z: 0}
   toEnemy: 0
   toPlayer: 1
   isFarAttack: 0
+  NearAttackMode: 0
+  FarAttackName: FarAttack
+  FarAttackMode: 0
+  canRetain: 0
+  FarAttackRand: 0
+  TraceParticle: {fileID: 0}
+  ColliderParticle: {fileID: 0}
+  willDisappear: 1
+  YSpeed: 5
+  NearAttackDisdeltaTime: 0
   isCrit: 0
   BulletSpeed: 1
-  BulletMaxDistance: 20
   AttackDirection: {x: 0, y: 0, z: 0}
-  isTouched: 0
+  AttackAim: {fileID: 0}
+  isGround: 0
   Holder: {fileID: 0}
+  DamageParticle: {fileID: 0}
 --- !u!135 &387780954
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -20098,15 +20178,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d3c50e0040784e9aab5652b3960fa00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ID: 1001
   EnemyMaxHP: 100
   MoveSpeed: 2
   Attack: 1
   AttackRange: 1
   NormalAttackInterval: 1
+  NormalAttackPre: 0.5
+  Weight: 10
+  DropItems: []
+  DorpRange: 1
+  GroundCheck: {fileID: 0}
+  NormalAttackIntervaldeltaTime: 0
+  NormalAttackTimes: 0
   EnemyDefence: -1
+  animator: {fileID: 0}
+  isJumpMove: 0
+  JumpSpeed: 1
+  toGroundParticle: {fileID: 0}
+  JumpTraceParticle: {fileID: 0}
+  JumpTraceParticleScale: 1
+  canNav: 1
+  canMove: 1
+  canAttack: 1
+  DeadExistTime: 1
+  isAttacking: 0
   EnemyHP: 0
   GetDamage: 0
   GetDamageHolder: {fileID: 0}
+  AttackAim: {fileID: 0}
+  navMeshAgent: {fileID: 0}
   IdelHeal: 1
   IdelIntervalTime: 4
   IdelMoveRange: 2
@@ -20114,10 +20215,15 @@ MonoBehaviour:
   EnemySprite: {fileID: 1704061734}
   EnemyBeAttackedSprite: {fileID: 312755653}
   NormalAttack: {fileID: 387780951}
+  NormalAttackPredeltaTime: 0
+  WalkSpeed: 0
+  BeAttackedDeriction: {x: 0, y: 0, z: 0}
   isFollowing: 0
   isDead: 0
   isBattle: 0
   isCrit: 0
+  isGround: 0
+  isOutRange: 0
 --- !u!195 &438753835
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -21284,6 +21390,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerHPImage: {fileID: 1275876774}
+  PlayerHPImageUI: {fileID: 0}
   PlayerMPImage: {fileID: 411225674}
   PlayerArmorImage: {fileID: 1969185262}
   MiniMapCamera: {fileID: 0}
@@ -21302,6 +21409,7 @@ MonoBehaviour:
   DeadPanel: {fileID: 487863485}
   DeadPanelButton: {fileID: 797140199}
   Player: {fileID: 86364610}
+  vignette: {fileID: 0}
   AimImage: {fileID: 665740994}
   AimHPImage: {fileID: 1914349840}
   PlayerOptionInfo: {fileID: 1033331935}
@@ -21314,7 +21422,11 @@ MonoBehaviour:
   - {fileID: 23025773}
   isSkillUIMove: 
   isPause: 0
-  isBattle: 0
+  isBattleFrom: []
+  SecneTrans: {fileID: 0}
+  CasePanel: {fileID: 0}
+  LeftPanel: {fileID: 0}
+  isCase: 0
   TickTime: 0
 --- !u!114 &454517975
 MonoBehaviour:
@@ -22812,6 +22924,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 1
   CoolDown: 2
   Duration: 3
@@ -22975,7 +23090,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &499194503
@@ -25304,8 +25419,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 5
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b24dfbb145aa647599852b2268164561, type: 2}
-  m_sharedMaterial: {fileID: -8576983485713310320, guid: b24dfbb145aa647599852b2268164561,
+  m_fontAsset: {fileID: 11400000, guid: f883dd1f3977045c2a14ae31717c19b9, type: 2}
+  m_sharedMaterial: {fileID: -2842231182346725187, guid: f883dd1f3977045c2a14ae31717c19b9,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -26672,6 +26787,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &571700801
 GameObject:
@@ -28381,6 +28500,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 3
   CoolDown: 2
   Duration: 3
@@ -35899,8 +36021,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 4
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b24dfbb145aa647599852b2268164561, type: 2}
-  m_sharedMaterial: {fileID: -8576983485713310320, guid: b24dfbb145aa647599852b2268164561,
+  m_fontAsset: {fileID: 11400000, guid: f883dd1f3977045c2a14ae31717c19b9, type: 2}
+  m_sharedMaterial: {fileID: -2842231182346725187, guid: f883dd1f3977045c2a14ae31717c19b9,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -37058,15 +37180,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Damage: 0
+  BeatBack: 1
+  InitialPositionShift: {x: 0, y: 0, z: 0}
   toEnemy: 1
   toPlayer: 0
   isFarAttack: 1
+  NearAttackMode: 0
+  FarAttackName: FarAttack
+  FarAttackMode: 0
+  canRetain: 0
+  FarAttackRand: 0
+  TraceParticle: {fileID: 0}
+  ColliderParticle: {fileID: 0}
+  willDisappear: 1
+  YSpeed: 5
+  NearAttackDisdeltaTime: 0
   isCrit: 0
   BulletSpeed: 25
-  BulletMaxDistance: 50
   AttackDirection: {x: 0, y: 0, z: 0}
-  isTouched: 0
+  AttackAim: {fileID: 0}
+  isGround: 0
   Holder: {fileID: 0}
+  DamageParticle: {fileID: 0}
 --- !u!135 &775338037
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -37446,6 +37581,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &782016555
 GameObject:
@@ -38220,6 +38359,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &796551504
 GameObject:
@@ -38505,12 +38648,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c78c8a590804feab35391c1323103d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ID: 1001
+  isGhost: 0
   NPCMaxHP: 10
   NPCMaxMP: 10
   NPCDefence: 0
   NPCSpeed: 4
   RegainHP: 1
   RegainMP: 1
+  CanMove: 1
+  OnlyTalk: 0
   NPCHP: 0
   NPCMP: 0
   GetDamage: 0
@@ -38519,16 +38666,27 @@ MonoBehaviour:
   IdelIntervalTime: 5
   IdelMoveRange: 1
   AttackFollowRange: {fileID: 1845034882}
+  Infos: {fileID: 0}
   TakingBar: {fileID: 1870068351}
   PreTalkBar: {fileID: 1423413654}
+  TradeBar: {fileID: 0}
+  NoteIndex: 0
+  Task: {fileID: 0}
+  NoteIcon: []
   NPCSprite: {fileID: 782260186}
   NormalAttack: {fileID: 1903978848}
   IntDistance: 2
+  Camera: {fileID: 0}
+  HintTexture: {fileID: 0}
+  NameBar: {fileID: 0}
   CanInt: 0
   isBattle: 0
   isDead: 0
   isinTeam: 0
   CanAttack: 1
+  isTask: 0
+  canReward: 0
+  isTrade: 0
 --- !u!136 &800241719
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -38844,6 +39002,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &807195287
 GameObject:
@@ -39442,6 +39604,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 0.1
   CoolDown: 2
   Duration: 8
@@ -40122,6 +40287,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &839682904
 GameObject:
@@ -40258,6 +40427,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &840325897
 GameObject:
@@ -40425,7 +40598,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &845322314
@@ -40638,7 +40811,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &849324809
@@ -41243,7 +41416,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &865936831
@@ -41572,8 +41745,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 2
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b24dfbb145aa647599852b2268164561, type: 2}
-  m_sharedMaterial: {fileID: -8576983485713310320, guid: b24dfbb145aa647599852b2268164561,
+  m_fontAsset: {fileID: 11400000, guid: f883dd1f3977045c2a14ae31717c19b9, type: 2}
+  m_sharedMaterial: {fileID: -2842231182346725187, guid: f883dd1f3977045c2a14ae31717c19b9,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -41972,6 +42145,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &875253036
 GameObject:
@@ -44458,6 +44635,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 0.1
   CoolDown: 2
   Duration: 8
@@ -46317,6 +46497,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &999669329
 GameObject:
@@ -47641,6 +47825,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 1
   CoolDown: 2
   Duration: 3
@@ -49770,12 +49957,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ItemID: 0
   ItemNum: 1
+  ItemSize: 5
+  ChooserHight: 0
   EquipType: 0
+  EquipProfession: 0
+  AttackType: 0
+  AttackRange: 1
+  AttackSpeed: 10
+  BeatBack: 1
   Attack: 1
   Defence: 0
   MaxHP: 5
   MaxMP: 0
   Speed: 0
+  SellPrice: 10
+  BuyPrice: 20
+  canGet: 1
+  canForceGet: 0
+  canDrop: 0
+  isGround: 1
+  Velocity: {x: 0, y: 0, z: 0}
+  ForceGetHolder: {fileID: 0}
+  HealHP: 0
 --- !u!1 &1081157157
 GameObject:
   m_ObjectHideFlags: 0
@@ -53599,6 +53802,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1184390861
 GameObject:
@@ -55411,6 +55618,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1217818869
 GameObject:
@@ -57854,6 +58065,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1264893391
 GameObject:
@@ -58004,8 +58219,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 6
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b24dfbb145aa647599852b2268164561, type: 2}
-  m_sharedMaterial: {fileID: -8576983485713310320, guid: b24dfbb145aa647599852b2268164561,
+  m_fontAsset: {fileID: 11400000, guid: f883dd1f3977045c2a14ae31717c19b9, type: 2}
+  m_sharedMaterial: {fileID: -2842231182346725187, guid: f883dd1f3977045c2a14ae31717c19b9,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -58962,6 +59177,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 0.1
   CoolDown: 2
   Duration: 5
@@ -61183,6 +61401,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 1
   CoolDown: 2
   Duration: 3
@@ -65884,6 +66105,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 1
   CoolDown: 2
   Duration: 3
@@ -66871,7 +67095,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1428605119
@@ -67096,6 +67320,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1429692726
 GameObject:
@@ -68928,7 +69156,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1461458500
@@ -69348,6 +69576,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1466282250
 GameObject:
@@ -70316,6 +70548,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1488843820
 GameObject:
@@ -74874,8 +75110,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 1
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b24dfbb145aa647599852b2268164561, type: 2}
-  m_sharedMaterial: {fileID: -8576983485713310320, guid: b24dfbb145aa647599852b2268164561,
+  m_fontAsset: {fileID: 11400000, guid: f883dd1f3977045c2a14ae31717c19b9, type: 2}
+  m_sharedMaterial: {fileID: -2842231182346725187, guid: f883dd1f3977045c2a14ae31717c19b9,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -75803,6 +76039,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1619263397
 GameObject:
@@ -76278,8 +76518,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 1
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b24dfbb145aa647599852b2268164561, type: 2}
-  m_sharedMaterial: {fileID: -8576983485713310320, guid: b24dfbb145aa647599852b2268164561,
+  m_fontAsset: {fileID: 11400000, guid: f883dd1f3977045c2a14ae31717c19b9, type: 2}
+  m_sharedMaterial: {fileID: -2842231182346725187, guid: f883dd1f3977045c2a14ae31717c19b9,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -77856,6 +78096,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 3
   CoolDown: 1
   Duration: 0.2
@@ -78041,6 +78284,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 3
   CoolDown: 2
   Duration: 0.5
@@ -79398,6 +79644,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   QuitButton: {fileID: 747165205}
   MenuButton: {fileID: 254841730}
+  AudioButton: {fileID: 0}
+  BacktoMainPanelButton: []
+  MainPanel: {fileID: 0}
+  AudioPanel: {fileID: 0}
+  MainGroup: {fileID: 0}
+  BGMGroup: {fileID: 0}
+  SFXGroup: {fileID: 0}
+  MainAudioSlider: {fileID: 0}
+  BGMSlider: {fileID: 0}
+  SFXSlider: {fileID: 0}
+  urpAsset: {fileID: 0}
+  TransImage: {fileID: 0}
 --- !u!1 &1696695001
 GameObject:
   m_ObjectHideFlags: 0
@@ -87624,6 +87882,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05954872bf0e42bebf04f5dd984eafa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SkillProfession: 0
+  SkillID: 0
+  isEquiped: 0
   Damage: 3
   CoolDown: 1
   Duration: 0.2
@@ -89295,7 +89556,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1891797315
@@ -89606,15 +89867,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Damage: 0
+  BeatBack: 1
+  InitialPositionShift: {x: 0, y: 0, z: 0}
   toEnemy: 0
   toPlayer: 0
   isFarAttack: 0
+  NearAttackMode: 0
+  FarAttackName: FarAttack
+  FarAttackMode: 0
+  canRetain: 0
+  FarAttackRand: 0
+  TraceParticle: {fileID: 0}
+  ColliderParticle: {fileID: 0}
+  willDisappear: 1
+  YSpeed: 5
+  NearAttackDisdeltaTime: 0
   isCrit: 0
   BulletSpeed: 1
-  BulletMaxDistance: 20
   AttackDirection: {x: 0, y: 0, z: 0}
-  isTouched: 0
+  AttackAim: {fileID: 0}
+  isGround: 0
   Holder: {fileID: 0}
+  DamageParticle: {fileID: 0}
 --- !u!135 &1903978852
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -91030,6 +91304,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageController: {fileID: 184403916}
   InfoImage: {fileID: 1798342055}
+  ItemID: 0
+  Item: {fileID: 0}
+  BagButtonID: -1
+  CaseButtonID: -1
   isClick: 0
 --- !u!1 &1931974354
 GameObject:
@@ -91060,11 +91338,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b87bb663dc99441eeb14863e41da904b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AimInfoUI: {fileID: 0}
+  PlayerInfoUI: {fileID: 0}
+  AreaInfoUI: {fileID: 0}
+  PlayerPackageUI: {fileID: 0}
+  StartPanel: {fileID: 0}
+  WhiteBox: {fileID: 0}
+  SecneTrans: {fileID: 0}
   CharacterCamera: {fileID: 1395713422}
   CharacterCanvas: {fileID: 454517972}
   Character: {fileID: 86364610}
   CharacterSprite: {fileID: 1021247536}
-  CharacterIndex: 1
 --- !u!1 &1932105462
 GameObject:
   m_ObjectHideFlags: 0
@@ -97830,12 +98114,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ItemID: 0
   ItemNum: 1
+  ItemSize: 5
+  ChooserHight: 0
   EquipType: 0
+  EquipProfession: 0
+  AttackType: 0
+  AttackRange: 1
+  AttackSpeed: 10
+  BeatBack: 1
   Attack: 10
   Defence: 0
   MaxHP: 0
   MaxMP: 0
   Speed: 0
+  SellPrice: 10
+  BuyPrice: 20
+  canGet: 1
+  canForceGet: 0
+  canDrop: 0
+  isGround: 1
+  Velocity: {x: 0, y: 0, z: 0}
+  ForceGetHolder: {fileID: 0}
+  HealHP: 0
 --- !u!1 &2097428495
 GameObject:
   m_ObjectHideFlags: 0
@@ -99302,7 +99602,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &2136825177
@@ -99461,7 +99761,7 @@ SpriteRenderer:
   m_Size: {x: 6.378, y: 6.378}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &2146183330

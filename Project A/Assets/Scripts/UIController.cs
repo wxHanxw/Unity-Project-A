@@ -18,6 +18,7 @@ public class UIController : MonoBehaviour
     [HorizontalLine]
     [Header("Player UI")]
     public Image PlayerHPImage;
+    public Image PlayerHPImageUI;
     public Image PlayerMPImage;
     public Image PlayerArmorImage;
 
@@ -107,7 +108,7 @@ public class UIController : MonoBehaviour
         ClosePackageButton.onClick.AddListener(BagController);
 
         SecneTransdeltaTime = 0.5f;
-        SecneTrans.color = new Color(0, 0, 0, 1);
+        SecneTrans.color = new Color(1, 1, 1, 1);
         SecneTrans.enabled = true;
 
     }
@@ -119,13 +120,17 @@ public class UIController : MonoBehaviour
         {
             SecneTransdeltaTime -= Time.deltaTime;
         }
-        else
+        else if (SecneTransdeltaTime != -1)
         {
             if (SecneTrans.enabled && SecneTrans.color.a > 0.01f)
             {
                 SecneTrans.color -= new Color(0, 0, 0, Time.deltaTime * 0.6f / (SecneTrans.color.a + 0.1f));
                 if (SecneTrans.color.a < 0.01f)
+                {
+                    SecneTransdeltaTime = -1;
                     SecneTrans.enabled = false;
+                }
+
             }
         }
 
@@ -322,6 +327,7 @@ public class UIController : MonoBehaviour
     {
         PlayerArmorImage.fillAmount = Mathf.Lerp(a: PlayerArmorImage.fillAmount, b: Player.GetComponent<PlayerController>().FinalCharacterInfos[12] / Player.GetComponent<PlayerController>().FinalCharacterInfos[0], t: 3 * Time.deltaTime);
         PlayerHPImage.fillAmount = Mathf.Lerp(a: PlayerHPImage.fillAmount, b: Player.GetComponent<PlayerController>().PlayerHP / Player.GetComponent<PlayerController>().FinalCharacterInfos[0], t: 3 * Time.deltaTime);
+        PlayerHPImageUI.fillAmount = Mathf.Lerp(a: PlayerHPImageUI.fillAmount, b: Player.GetComponent<PlayerController>().PlayerHP / Player.GetComponent<PlayerController>().FinalCharacterInfos[0], t: 3 * Time.deltaTime);
         PlayerMPImage.fillAmount = Player.GetComponent<PlayerController>().PlayerMP / Player.GetComponent<PlayerController>().FinalCharacterInfos[4];
     }
     private void AimBarController()

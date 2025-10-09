@@ -38,20 +38,20 @@ public class 暴躁的商人 : MonoBehaviour
             FarAttackController();
         }
 
-        if (enemyInfo.AttackAim != null && (enemyInfo.AttackAim.transform.position - gameObject.transform.position).magnitude < 2 && enemyInfo.NormalAttackTimes > 3 && enemyInfo.isGround)
-        {
-            enemyInfo.NormalAttackTimes = 0;
-            isJumpTimes = true;
-            enemyInfo.canAttack = false;
-            JumpDirection = -(enemyInfo.AttackAim.transform.position - gameObject.transform.position).normalized * 5;
-            enemyInfo.JumpFunction(JumpDirection);
-        }
-        else if (isJumpTimes)
-        {
-            JumpDirection = new Vector3(0, 0, 0);
-            isJumpTimes = false;
-            enemyInfo.canAttack = true;
-        }
+        // if (enemyInfo.AttackAim != null && (enemyInfo.AttackAim.transform.position - gameObject.transform.position).magnitude < 2 && enemyInfo.NormalAttackTimes > 3 && enemyInfo.isGround)
+        // {
+        //     enemyInfo.NormalAttackTimes = 0;
+        //     isJumpTimes = true;
+        //     enemyInfo.canAttack = false;
+        //     JumpDirection = -(enemyInfo.AttackAim.transform.position - gameObject.transform.position).normalized * 5;
+        //     enemyInfo.JumpFunction(JumpDirection);
+        // }
+        // else if (isJumpTimes)
+        // {
+        //     JumpDirection = new Vector3(0, 0, 0);
+        //     isJumpTimes = false;
+        //     enemyInfo.canAttack = true;
+        // }
 
         //愤怒检测
         if (!isAngry && enemyInfo.enabled)

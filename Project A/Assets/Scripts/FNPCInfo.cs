@@ -216,7 +216,7 @@ public class FNPCInfo : MonoBehaviour
             }
 
             //名字显示
-            if (Character.GetComponent<PlayerController>().VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y == 0)
+            if (Character.GetComponent<PlayerController>().VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y <= 0.4f)
             {
                 NameBar.SetActive(true);
             }
@@ -316,7 +316,8 @@ public class FNPCInfo : MonoBehaviour
                 MovetoPosition = new Vector3(randomR * math.sin(randomalpha), 0, randomR * math.cos(randomalpha));
 
             navMeshAgent.stoppingDistance = 0;
-            navMeshAgent.destination = InitialPosition + MovetoPosition;
+            if (navMeshAgent.enabled)
+                navMeshAgent.destination = InitialPosition + MovetoPosition;
         }
     }
 

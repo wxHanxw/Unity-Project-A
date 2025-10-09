@@ -15,7 +15,7 @@ MonoBehaviour:
   useDistance: 0
   distanceGradient:
     serializedVersion: 2
-    key0: {r: 1, g: 1, b: 1, a: 0.78431374}
+    key0: {r: 0.990566, g: 0.9858865, b: 0.76161444, a: 0.78431374}
     key1: {r: 1, g: 1, b: 1, a: 0.39215687}
     key2: {r: 1, g: 1, b: 1, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
@@ -31,21 +31,21 @@ MonoBehaviour:
     ctime5: 0
     ctime6: 0
     ctime7: 0
-    atime0: 6746
-    atime1: 16577
+    atime0: 8481
+    atime1: 20239
     atime2: 65342
     atime3: 0
     atime4: 0
     atime5: 0
     atime6: 0
     atime7: 0
-    m_Mode: 1
+    m_Mode: 0
     m_ColorSpace: 0
     m_NumColorKeys: 3
     m_NumAlphaKeys: 3
-  near: 30
-  far: 150
-  distanceFogIntensity: 0
+  near: -100
+  far: 84.5
+  distanceFogIntensity: 0.298
   useHeight: 0
   heightGradient:
     serializedVersion: 2
@@ -77,11 +77,11 @@ MonoBehaviour:
     m_ColorSpace: 0
     m_NumColorKeys: 3
     m_NumAlphaKeys: 2
-  low: 0
-  high: 1
-  heightFogIntensity: 0.516
-  cameraRelativePosition: 0
-  distanceHeightBlend: 0
+  low: -100
+  high: 10
+  heightFogIntensity: 0.3
+  cameraRelativePosition: 1
+  distanceHeightBlend: 0.343
   renderEvent: 550
   applyInSceneView: 1
   effectMaterial: {fileID: 3809722197779856838}
@@ -97,7 +97,8 @@ Material:
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - FOG_CAMERA_RELATIVE
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -131,12 +132,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DistanceFogIntensity: 0
-    - _DistanceHeightBlend: 1
-    - _Far: 150
-    - _HeightFogIntensity: 0.516
-    - _HighWorldY: 1
-    - _LowWorldY: 0
-    - _Near: 30
+    - _DistanceFogIntensity: 0.298
+    - _DistanceHeightBlend: 0.343
+    - _Far: 84.5
+    - _HeightFogIntensity: 0.3
+    - _HighWorldY: 10
+    - _LowWorldY: -100
+    - _Near: -100
     m_Colors: []
   m_BuildTextureStacks: []

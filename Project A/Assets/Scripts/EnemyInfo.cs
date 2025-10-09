@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using TMPro;
 using UnityEngine.Rendering.Universal;
+using Unity.Burst.Intrinsics;
 public class EnemyInfo : MonoBehaviour
 {
     //basic info
@@ -20,6 +21,9 @@ public class EnemyInfo : MonoBehaviour
     public float NormalAttackPre = 0.5f;
 
     public int Weight = 10;
+
+    public GameObject[] DropItems;
+    public float DorpRange = 1;
 
     public ColliderTrigger GroundCheck;
 
@@ -40,8 +44,14 @@ public class EnemyInfo : MonoBehaviour
     public GameObject JumpTraceParticle;
     public float JumpTraceParticleScale = 1;
     private Vector3 JumpVector;
+
+    public bool canNav = true;
     public bool canMove = true;
     public bool canAttack = true;
+
+    //死亡持续
+    public float DeadExistTime = 1;
+    private float DeadExistdeltaTime = 0;
 
     public bool isAttacking = false;
 
@@ -92,7 +102,7 @@ public class EnemyInfo : MonoBehaviour
 
     private float ySpeed = 0;
     [HideInInspector]
-    public bool isFollowing = false, isDead = false, isBattle = false, isCrit = false, isGround = false;
+    public bool isFollowing = false, isDead = false, isBattle = false, isCrit = false, isGround = false, isOutRange = false, canFollowStop = true;
 
     private GameObject Character, UICanvas;
     // Start is called before the first frame update
@@ -143,9 +153,25 @@ public class EnemyInfo : MonoBehaviour
                 AttackController();
             }
         }
-        else if (EnemySprite.activeSelf)
+        else if (!animator.GetBool("isDead"))
         {
-            EnemySprite.SetActive(false);
+            animator.SetBool("isDead", isDead);
+            //物品掉落
+            System.Random random = new System.Random();
+            for (int i = 0; i < DropItems.Length; i++)
+            {
+                float randomR = ((float)random.NextDouble() / 1.5f + 0.5f) * DorpRange;
+                float randomalpha = (float)random.NextDouble() * 2 * math.PI;
+                float randomH = ((float)random.NextDouble() + 1) * 0;
+                GameObject Ins = Instantiate(DropItems[i], transform.position + new Vector3(randomR * math.cos(randomalpha), 0.2f, randomR * math.sin(randomalpha)), transform.rotation);
+                Ins.transform.localScale = DropItems[i].transform.lossyScale;
+                if (Ins.GetComponent<ItemInfo>() != null)
+                    Ins.GetComponent<ItemInfo>().isGround = false;
+                //Ins.GetComponent<ItemInfo>().Velocity = new Vector3(randomR * math.cos(randomalpha), randomH, randomR * math.sin(randomalpha));
+                Ins.SetActive(true);
+            }
+            canMove = false;
+            canAttack = false;
             Character.GetComponent<PlayerController>().HitAim = null;
             Character.GetComponent<PlayerController>().isChooseItem = false;
             Character.GetComponent<PlayerController>().Chooser.SetActive(false);
@@ -154,15 +180,33 @@ public class EnemyInfo : MonoBehaviour
             Canvas.GetComponent<UIController>().isBattleFrom.Remove(gameObject);
         }
 
-        //落地检测
-        if (GroundCheck.isToched && ySpeed <= 0)
+        if (animator.GetBool("isDead"))
         {
-            isGround = true;
-            navMeshAgent.enabled = true;
+            DeadExistdeltaTime += Time.deltaTime;
+            if (DeadExistdeltaTime > DeadExistTime)
+            {
+                Destroy(gameObject);
+            }
         }
-        else if (!GroundCheck.isToched && ySpeed > 0)
+
+        //落地检测
+        if (canNav)
         {
-            isGround = false;
+            if (GroundCheck.isToched && ySpeed <= 0 && isGround == false)
+            {
+                isGround = true;
+                navMeshAgent.enabled = true;
+                navMeshAgent.Warp(transform.position);
+            }
+            else if (!GroundCheck.isToched && ySpeed > 0)
+            {
+                isGround = false;
+            }
+        }
+        else if (gameObject.GetComponent<Collider>().enabled == true)
+        {
+            navMeshAgent.enabled = false;
+            gameObject.GetComponent<Collider>().enabled = false;
         }
     }
 
@@ -176,6 +220,7 @@ public class EnemyInfo : MonoBehaviour
         }
 
         NormalAttackIntervaldeltaTime += Time.deltaTime;
+
         if (isFollowing && (transform.position - Character.transform.position).magnitude < AttackRange)
         {
             if (NormalAttackIntervaldeltaTime > NormalAttackInterval)
@@ -193,8 +238,12 @@ public class EnemyInfo : MonoBehaviour
             gameObject.transform.Translate(BeAttackedDeriction / Weight);
             gameObject.GetComponent<Collider>().enabled = false;
             BeAttackedIntervaldeltaTime += Time.deltaTime;
+            if (EnemySprite != null)
+                EnemySprite.GetComponent<MeshRenderer>().material.color = new Color(0.8f, 0.6f, 0.6f);
             if (BeAttackedIntervaldeltaTime > 0.2f)
             {
+                if (EnemySprite != null)
+                    EnemySprite.GetComponent<MeshRenderer>().material.color = new Color(1f, 1f, 1f);
                 gameObject.GetComponent<Collider>().enabled = true;
                 animator.SetBool("isAttacked", false);
                 EnemyBeAttackedSprite.SetActive(false);
@@ -280,14 +329,17 @@ public class EnemyInfo : MonoBehaviour
             float randomalpha = (float)random.NextDouble() * 2 * math.PI;
             MovetoPosition = new Vector3(randomR * math.sin(randomalpha), 0, randomR * math.cos(randomalpha));
 
-            if (isGround && navMeshAgent.enabled)
+
+            if (navMeshAgent.enabled)
+            {
+                isOutRange = false;
                 navMeshAgent.destination = InitialPosition + MovetoPosition;
+            }
         }
 
         if (isJumpMove && !isFollowing && IdelIntervaldeltaTime > IdelIntervalTime)
         {
             JumpFunction(new Vector3(0, 0, 0));
-
         }
 
         animator.SetBool("isJump", !isGround);
@@ -335,18 +387,27 @@ public class EnemyInfo : MonoBehaviour
             }
         }
         //攻击最高伤害来源
-        if (AttackAim != null && (transform.position - InitialPosition).magnitude < 6 * IdelMoveRange)
+        if (AttackAim != null && (transform.position - InitialPosition).magnitude < 6 * IdelMoveRange && (transform.position - AttackAim.transform.position).magnitude < 5 * AttackRange)
         {
+            isOutRange = false;
             isFollowing = true;
-            if (isGround && canMove)
+            if (isGround)
             {
-                navMeshAgent.speed = MoveSpeed;
-                navMeshAgent.destination = AttackAim.transform.position;
+                if (canMove)
+                {
+                    navMeshAgent.speed = MoveSpeed;
+                    navMeshAgent.destination = AttackAim.transform.position;
+                }
+                else if (canFollowStop)
+                {
+                    navMeshAgent.destination = gameObject.transform.position;
+                }
             }
 
         }
-        else if (isFollowing && (transform.position - InitialPosition).magnitude > 6 * IdelMoveRange)
+        else if (isFollowing && ((transform.position - InitialPosition).magnitude > 6 * IdelMoveRange || (transform.position - AttackAim.transform.position).magnitude > 5 * AttackRange))
         {
+            isOutRange = true;
             for (int i = 0; i < DamageHolderList.Length; i++)
             {
                 DamageList[i] = 0;

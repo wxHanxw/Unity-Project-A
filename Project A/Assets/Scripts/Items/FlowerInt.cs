@@ -17,7 +17,7 @@ public class FlowerInt : MonoBehaviour
     {
         if (isTouch && transform.position.y > InitialPosition.y - 0.1f)
         {
-            transform.position -= new Vector3(0, 3, 0) * Time.deltaTime;
+            transform.position -= new Vector3(0, 2, 0) * Time.deltaTime;
         }
         else if (!isTouch && transform.position.y < InitialPosition.y)
         {

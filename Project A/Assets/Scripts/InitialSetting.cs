@@ -8,16 +8,13 @@ using UnityEngine.TextCore.Text;
 public class InitialSetting : MonoBehaviour
 {
     private int screenWidth, screenHeight;
-    public GameObject AimInfoUI, PlayerInfoUI, AreaInfoUI, PlayerPackageUI;
+    public GameObject AimInfoUI, PlayerInfoUI, AreaInfoUI, PlayerPackageUI, StartPanel, WhiteBox, SecneTrans;
     public GameObject CharacterCamera;
     public GameObject CharacterCanvas;
 
     public GameObject Character;
     public GameObject CharacterSprite;
 
-    private static InitialSetting DontDestroy;
-
-    public int CharacterIndex = 0;
     // Start is called before the first frame update
 
     void Start()
@@ -30,34 +27,51 @@ public class InitialSetting : MonoBehaviour
         {
             scale = new Vector3(1, 1, 1) * math.sqrt((float)Screen.width / 2560);
             PlayerPackageUI.transform.localScale = new Vector3(1, 1, 1) * math.pow(scale.x, 1.9f);
+            SecneTrans.transform.localScale = new Vector3(1, 1, 1) * math.pow(scale.x, 1.9f);
+            if (SceneManager.GetActiveScene().buildIndex == 0)
+            {
+                StartPanel.transform.localScale = new Vector3(1, 1, 1) * math.pow(scale.x, 1.9f);
+                WhiteBox.transform.localScale = new Vector3(WhiteBox.transform.localScale.x * Screen.width / Screen.height / 1.6f, WhiteBox.transform.localScale.y, WhiteBox.transform.localScale.z);
+            }
         }
         else
         {
             scale = new Vector3(1, 1, 1) * Screen.width / 2560;
             PlayerPackageUI.transform.localScale = scale;
+            SecneTrans.transform.localScale = new Vector3(1, 1, 1) * math.pow(scale.x, 1.9f);
+            if (SceneManager.GetActiveScene().buildIndex == 0)
+            {
+                StartPanel.transform.localScale = scale;
+                WhiteBox.transform.localScale = new Vector3(WhiteBox.transform.localScale.x * Screen.width / Screen.height / 1.6f, WhiteBox.transform.localScale.y, WhiteBox.transform.localScale.z);
+            }
+
         }
 
-        AimInfoUI.transform.localScale = scale;
-        PlayerInfoUI.transform.localScale = scale;
-        AreaInfoUI.transform.localScale = scale;
+        if (SceneManager.GetActiveScene().buildIndex != 0)
+        {
+            AimInfoUI.transform.localScale = scale;
+            PlayerInfoUI.transform.localScale = scale;
+            AreaInfoUI.transform.localScale = scale;
+        }
+
 
 
         //单例模式
-        if (SceneManager.GetActiveScene().buildIndex != 0)
-        {
-            if (DontDestroy != null)
-            {
-                Destroy(DontDestroy.gameObject);
-            }
-            DontDestroy = this;
-        }
+        //if (SceneManager.GetActiveScene().buildIndex != 0)
+        //{
+        //   if (DontDestroy != null)
+        //   {
+        //       Destroy(DontDestroy.gameObject);
+        //   }
+        //   DontDestroy = this;
+        //}
     }
 
     // Update is called once per frame
     void Update()
     {
         //补充更新
-        InitialSet();
+        //InitialSet();
     }
 
     //进入场景初始化

@@ -124,6 +124,10 @@ public class Task : MonoBehaviour
             PlayerController.TotalCoin += RewardNum * 10000;
             PlayerController.CoinController();
         }
+        else
+        {
+            RewardItem.GetComponent<ItemInfo>().GetItem();
+        }
 
         //在任务列表中删除
         PlayerController.gameObject.GetComponent<TaskController>().TakingTasks.Remove(gameObject.GetComponent<Task>());
