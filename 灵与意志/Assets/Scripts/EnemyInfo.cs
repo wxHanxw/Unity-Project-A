@@ -1,0 +1,502 @@
+using System.Collections;
+using System.Collections.Generic;
+using ExternPropertyAttributes;
+using Unity.Mathematics;
+using UnityEngine;
+using UnityEngine.AI;
+using TMPro;
+using UnityEngine.Rendering.Universal;
+using Unity.Burst.Intrinsics;
+public class EnemyInfo : MonoBehaviour
+{
+    //basic info
+    [HorizontalLine]
+    [Header("Basic Information")]
+    public int ID = 1001;
+    public float EnemyMaxHP = 1;
+    public float MoveSpeed = 3;
+    public float Attack = 1;
+    public float AttackRange = 1;
+    public float NormalAttackInterval = 1;
+    public float NormalAttackPre = 0.5f;
+
+    public int Weight = 10;
+
+    public GameObject[] DropItems;
+    public float DorpRange = 1;
+
+    public ColliderTrigger GroundCheck;
+
+    [HideInInspector]
+    public float NormalAttackIntervaldeltaTime = 0;
+
+    public int NormalAttackTimes = 0;
+
+    public float EnemyDefence = 1;
+
+    public Animator animator;
+
+    //移动模式
+    public bool isJumpMove = false;
+    public float JumpSpeed = 1;
+
+    public GameObject toGroundParticle;
+    public GameObject JumpTraceParticle;
+    public float JumpTraceParticleScale = 1;
+    private Vector3 JumpVector;
+
+    public bool canNav = true;
+    public bool canMove = true;
+    public bool canAttack = true;
+
+    //死亡持续
+    public float DeadExistTime = 1;
+    private float DeadExistdeltaTime = 0;
+
+    public bool isAttacking = false;
+
+    [HideInInspector]
+    public float EnemyHP;
+
+    [HideInInspector]
+    public float GetDamage = 0;
+    public GameObject GetDamageHolder;
+
+    private GameObject[] DamageHolderList;
+    private float[] DamageList;
+
+    public GameObject AttackAim;
+
+
+    private float RealGetDamage = 0;
+
+    public Vector3 DamageTextShift = new Vector3(0, 0.5f, 0);
+    private GameObject Canvas;
+    public NavMeshAgent navMeshAgent;
+
+    [HorizontalLine]
+    [Header("AI Idel")]
+    public float IdelHeal = 1;
+    public float IdelIntervalTime = 4;
+    public float IdelMoveRange = 2;
+    public float AttackFollowRange = 3;
+
+
+    public GameObject EnemySprite;
+    public GameObject EnemyBeAttackedSprite;
+
+    private float BeAttackedIntervaldeltaTime = 0;
+
+    private float IdelHealdeltaTime = 0;
+
+    [HorizontalLine]
+    [Header("Attack Models")]
+    public GameObject NormalAttack;
+
+    private TMP_Text DamageFigure;
+
+    private float IdelIntervaldeltaTime = 0;
+
+    public float NormalAttackPredeltaTime = 0, WalkSpeed;
+    private Vector3 InitialPosition, MovetoPosition;
+
+    public Vector3 BeAttackedDeriction;
+
+    private float ySpeed = 0;
+    [HideInInspector]
+    public bool isFollowing = false, isDead = false, isBattle = false, isCrit = false, isGround = false, isOutRange = false, canFollowStop = true;
+
+    private GameObject Character, UICanvas;
+    // Start is called before the first frame update
+    void Start()
+    {
+        DamageHolderList = new GameObject[10];
+        DamageList = new float[10];
+        if (NormalAttack != null)
+            NormalAttack.GetComponent<NormalAttackTrigger>().Damage = Attack;
+        EnemyHP = EnemyMaxHP;
+        Canvas = GameObject.FindGameObjectWithTag("Canvas");
+        Character = GameObject.FindGameObjectWithTag("Character");
+        UICanvas = GameObject.FindGameObjectWithTag("Canvas");
+        InitialPosition = transform.position;
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        WalkSpeed = navMeshAgent.speed;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if ((Character.transform.position - gameObject.transform.position).magnitude < 30)
+        {
+            //更新读取伤害显示
+            if (DamageFigure == null)
+            {
+                DamageFigure = GameObject.FindGameObjectWithTag("DamageFigure").GetComponent<TMP_Text>();
+            }
+
+            if (Canvas == null)
+            {
+                Canvas = GameObject.FindGameObjectWithTag("Canvas");
+            }
+            if (Character == null)
+            {
+                Character = GameObject.FindGameObjectWithTag("Character");
+            }
+
+            if (!isDead)
+            {
+                gameObject.GetComponent<Collider>().isTrigger = navMeshAgent.enabled;
+                HPController();
+                if (canMove)
+                {
+                    RandomMove();
+                }
+                if (canAttack)
+                {
+                    AttackFollowCheck();
+                    AttackController();
+                }
+            }
+            else if (!animator.GetBool("isDead"))
+            {
+                animator.SetBool("isDead", isDead);
+                //物品掉落
+                System.Random random = new System.Random();
+                for (int i = 0; i < DropItems.Length; i++)
+                {
+                    float randomR = ((float)random.NextDouble() / 1.5f + 0.5f) * DorpRange;
+                    float randomalpha = (float)random.NextDouble() * 2 * math.PI;
+                    float randomH = ((float)random.NextDouble() + 1) * 0;
+                    GameObject Ins = Instantiate(DropItems[i], transform.position + new Vector3(randomR * math.cos(randomalpha), 0.2f, randomR * math.sin(randomalpha)), transform.rotation);
+                    Ins.transform.localScale = DropItems[i].transform.lossyScale;
+                    if (Ins.GetComponent<ItemInfo>() != null)
+                        Ins.GetComponent<ItemInfo>().isGround = false;
+                    //Ins.GetComponent<ItemInfo>().Velocity = new Vector3(randomR * math.cos(randomalpha), randomH, randomR * math.sin(randomalpha));
+                    Ins.SetActive(true);
+                }
+                canMove = false;
+                canAttack = false;
+                Character.GetComponent<PlayerController>().HitAim = null;
+                Character.GetComponent<PlayerController>().isChooseItem = false;
+                Character.GetComponent<PlayerController>().Chooser.SetActive(false);
+                this.GetComponent<Collider>().enabled = false;
+                if (NormalAttack != null)
+                    NormalAttack.SetActive(false);
+                Canvas.GetComponent<UIController>().isBattleFrom.Remove(gameObject);
+            }
+
+            if (animator.GetBool("isDead"))
+            {
+                DeadExistdeltaTime += Time.deltaTime;
+                if (DeadExistdeltaTime > DeadExistTime)
+                {
+                    Destroy(gameObject);
+                }
+            }
+
+            //落地检测
+            if (canNav)
+            {
+                if (GroundCheck.isToched && ySpeed <= 0 && isGround == false)
+                {
+                    isGround = true;
+                    navMeshAgent.enabled = true;
+                    navMeshAgent.Warp(transform.position);
+                }
+                else if (!GroundCheck.isToched && ySpeed > 0)
+                {
+                    isGround = false;
+                }
+            }
+            else if (gameObject.GetComponent<Collider>().enabled == true)
+            {
+                navMeshAgent.enabled = false;
+                gameObject.GetComponent<Collider>().enabled = false;
+            }
+        }
+    }
+
+    private void AttackController()
+    {
+        if (!isFollowing)
+        {
+            NormalAttackPredeltaTime = 0;
+            NormalAttackIntervaldeltaTime = 0;
+            NormalAttack.SetActive(false);
+        }
+
+        NormalAttackIntervaldeltaTime += Time.deltaTime;
+
+        if (isFollowing && (transform.position - Character.transform.position).magnitude < AttackRange)
+        {
+            if (NormalAttackIntervaldeltaTime > NormalAttackInterval)
+            {
+                //预备攻击
+                isAttacking = true;
+            }
+        }
+    }
+
+    private void HPController()
+    {
+        if (BeAttackedIntervaldeltaTime <= 0.2f)
+        {
+            gameObject.transform.Translate(BeAttackedDeriction / Weight);
+            gameObject.GetComponent<Collider>().enabled = false;
+            BeAttackedIntervaldeltaTime += Time.deltaTime;
+            if (EnemySprite != null)
+                EnemySprite.GetComponent<MeshRenderer>().material.color = new Color(0.8f, 0.6f, 0.6f);
+            if (BeAttackedIntervaldeltaTime > 0.2f)
+            {
+                if (EnemySprite != null)
+                    EnemySprite.GetComponent<MeshRenderer>().material.color = new Color(1f, 1f, 1f);
+                gameObject.GetComponent<Collider>().enabled = true;
+                animator.SetBool("isAttacked", false);
+                EnemyBeAttackedSprite.SetActive(false);
+            }
+        }
+        if (GetDamage != 0 && BeAttackedIntervaldeltaTime > 0.2f)
+        {
+            RealGetDamage = GetDamage - EnemyDefence;
+            if (RealGetDamage < 1)
+            {
+                RealGetDamage = 1;
+            }
+            EnemyHP -= RealGetDamage;
+            //记录伤害来源
+            for (int i = 0; i < DamageHolderList.Length; i++)
+            {
+                if (DamageHolderList[i] == GetDamageHolder)
+                {
+                    DamageList[i] += RealGetDamage;
+                    break;
+                }
+                else if (DamageHolderList[i] == null)
+                {
+                    DamageHolderList[i] = GetDamageHolder;
+                    DamageList[i] += RealGetDamage;
+                    break;
+                }
+            }
+
+            //EnemyBeAttackedSprite.SetActive(true);
+            animator.SetBool("isAttacked", true);
+            BeAttackedIntervaldeltaTime = 0;
+            TMP_Text DamageFigureIns = Instantiate(DamageFigure, transform.position + DamageTextShift, transform.rotation, DamageFigure.transform.parent);
+            DamageFigureIns.text = RealGetDamage.ToString();
+            DamageFigureIns.color = new Color(1, 0, 0);//red
+            if (isCrit)
+            {
+                DamageFigureIns.fontStyle |= FontStyles.Bold;
+                DamageFigureIns.fontSize = 16;
+            }
+            else
+            {
+                DamageFigureIns.fontStyle &= ~FontStyles.Bold;
+                DamageFigureIns.fontSize = 12;
+            }
+            DamageFigureIns.gameObject.SetActive(true);
+            if (Character.GetComponent<PlayerController>().HitAim == null || Character.GetComponent<PlayerController>().HitAim.tag != "Enemy")
+            {
+                Character.GetComponent<PlayerController>().HitAim = this.gameObject;
+                Character.GetComponent<PlayerController>().isChooseItem = true;
+                if (Character.GetComponent<PlayerController>().UseChooser)
+                    Character.GetComponent<PlayerController>().Chooser.SetActive(true);
+            }
+            GetDamage = 0;
+        }
+        if (EnemyHP <= 0)
+        {
+            EnemyHP = 0;
+            if (!isDead)
+            {
+                Character.GetComponent<TaskController>().AimID = ID;
+                Character.GetComponent<TaskController>().TaskUpdate();
+                isDead = true;
+            }
+
+        }
+        else if (EnemyHP > EnemyMaxHP)
+        {
+            EnemyHP = EnemyMaxHP;
+        }
+    }
+    //随机移动
+    private void RandomMove()
+    {
+        IdelIntervaldeltaTime += Time.deltaTime;
+        if (!isJumpMove && !isFollowing && IdelIntervaldeltaTime > IdelIntervalTime)
+        {
+            navMeshAgent.speed = WalkSpeed;
+
+            System.Random random = new System.Random();
+            IdelIntervaldeltaTime = ((float)random.NextDouble() / 2 - 1) * IdelIntervaldeltaTime / 2;
+            float randomR = (float)random.NextDouble() * IdelMoveRange;
+            float randomalpha = (float)random.NextDouble() * 2 * math.PI;
+            MovetoPosition = new Vector3(randomR * math.sin(randomalpha), 0, randomR * math.cos(randomalpha));
+
+
+            if (navMeshAgent.enabled)
+            {
+                isOutRange = false;
+                navMeshAgent.destination = InitialPosition + MovetoPosition;
+            }
+        }
+
+        if (isJumpMove && !isFollowing && IdelIntervaldeltaTime > IdelIntervalTime)
+        {
+            JumpFunction(new Vector3(0, 0, 0));
+        }
+
+        animator.SetBool("isJump", !isGround);
+        navMeshAgent.enabled = isGround;
+        if (!isGround)
+        {
+            System.Random random = new System.Random();
+            GameObject Ins = Instantiate(JumpTraceParticle, transform.position + new Vector3(0, 0.3f, 0), transform.rotation);
+            Ins.transform.localScale = new Vector3(1f, 1f, 1f) * JumpTraceParticleScale * ((float)random.NextDouble() / 1.5f + 0.5f);
+            Ins.SetActive(true);
+            JumpVector.y = ySpeed;
+            transform.Translate(JumpVector * Time.deltaTime);
+        }
+        if (!isGround)
+            ySpeed -= 40f * Time.deltaTime;
+        else if (ySpeed < 0)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                GameObject Ins = Instantiate(toGroundParticle, transform.position, transform.rotation);
+                System.Random random = new System.Random();
+                Ins.transform.localScale = new Vector3(1f, 1f, 1f) * JumpTraceParticleScale * ((float)random.NextDouble() / 1.5f + 0.5f);
+                Ins.SetActive(true);
+            }
+            ySpeed = 0;
+        }
+    }
+
+    private void AttackFollowCheck()
+    {
+        float MaxDamge = 0;
+        for (int i = 0; i < DamageHolderList.Length; i++)
+        {
+            if (DamageHolderList[i] == null)
+            {
+                break;
+            }
+            else if (MaxDamge < DamageList[i])
+            {
+                if (DamageHolderList[i].tag == "Character" && DamageHolderList[i].GetComponent<PlayerController>().isGhost == false)
+                {
+                    MaxDamge = DamageList[i];
+                    AttackAim = DamageHolderList[i];
+                }
+            }
+        }
+        //攻击最高伤害来源
+        if (AttackAim != null && (transform.position - InitialPosition).magnitude < 6 * IdelMoveRange && (transform.position - AttackAim.transform.position).magnitude < 5 * AttackRange)
+        {
+            isOutRange = false;
+            isFollowing = true;
+            if (isGround)
+            {
+                if (canMove)
+                {
+                    navMeshAgent.speed = MoveSpeed;
+                    navMeshAgent.destination = AttackAim.transform.position;
+                }
+                else if (canFollowStop)
+                {
+                    navMeshAgent.destination = gameObject.transform.position;
+                }
+            }
+
+        }
+        else if (isFollowing && ((transform.position - InitialPosition).magnitude > 6 * IdelMoveRange || (transform.position - AttackAim.transform.position).magnitude > 5 * AttackRange))
+        {
+            isOutRange = true;
+            for (int i = 0; i < DamageHolderList.Length; i++)
+            {
+                DamageList[i] = 0;
+                DamageHolderList[i] = null;
+            }
+            AttackAim = null;
+            isFollowing = false;
+            IdelIntervaldeltaTime = IdelIntervalTime;
+        }
+        //目标死亡后刷新
+        if (AttackAim != null)
+        {
+            if (AttackAim.tag == "Character" && AttackAim.GetComponent<PlayerController>().PlayerHP <= 0)
+            {
+                AttackAim = null;
+                isFollowing = false;
+                IdelIntervaldeltaTime = IdelIntervalTime;
+            }
+        }
+        //攻击附近的敌人
+        if (Character != null && Character.GetComponent<PlayerController>().PlayerHP > 0 && (transform.position - InitialPosition).magnitude < 4 * IdelMoveRange && (transform.position - Character.transform.position).magnitude < AttackFollowRange)
+        {
+            isFollowing = true;
+            AttackAim = Character;
+            if (isGround && canMove)
+            {
+                navMeshAgent.speed = MoveSpeed;
+                navMeshAgent.stoppingDistance = AttackRange;
+                navMeshAgent.destination = Character.transform.position;
+            }
+
+        }
+        else if (AttackAim == null)
+        {
+            isFollowing = false;
+        }
+
+        //休战回血
+        if (!isFollowing && !isBattle)
+        {
+            IdelHealdeltaTime += Time.deltaTime;
+            for (int i = 0; i < DamageList.Length; i++)
+            {
+                DamageList[i] = 0;
+            }
+
+            if (IdelHealdeltaTime > 0.3f)
+            {
+                EnemyHP += IdelHeal;
+                IdelHealdeltaTime = 0;
+            }
+        }
+        if (isFollowing && AttackAim == Character)
+        {
+            if (!Canvas.GetComponent<UIController>().isBattleFrom.Contains(gameObject))
+                Canvas.GetComponent<UIController>().isBattleFrom.Add(gameObject);
+        }
+        else
+            Canvas.GetComponent<UIController>().isBattleFrom.Remove(gameObject);
+    }
+
+
+    public void JumpFunction(Vector3 JumpDirecrion)
+    {
+        if (JumpDirecrion.magnitude == 0)
+        {
+            System.Random random = new System.Random();
+            IdelIntervaldeltaTime = ((float)random.NextDouble() / 2 - 1) * IdelIntervaldeltaTime / 2;
+            float randomR = ((float)random.NextDouble() / 2 + 0.5f) * IdelMoveRange;
+            float randomalpha = (float)random.NextDouble() * 2 * math.PI;
+            ySpeed = JumpSpeed;
+
+            JumpVector = new Vector3(randomR * math.sin(randomalpha), ySpeed, randomR * math.cos(randomalpha));
+        }
+        else
+        {
+            ySpeed = JumpSpeed;
+
+            JumpVector = new Vector3(JumpDirecrion.x, ySpeed, JumpDirecrion.z);
+        }
+
+        isGround = false;
+        navMeshAgent.enabled = false;
+        animator.SetBool("isJump", true);
+    }
+}

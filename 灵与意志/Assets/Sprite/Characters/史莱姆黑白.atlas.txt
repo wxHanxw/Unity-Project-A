@@ -1,0 +1,48 @@
+
+史莱姆黑白.png
+size: 458,261
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+b1
+  rotate: false
+  xy: 2, 2
+  size: 107, 41
+  orig: 513, 513
+  offset: 200, 259
+  index: -1
+b2
+  rotate: true
+  xy: 242, 21
+  size: 238, 214
+  orig: 513, 513
+  offset: 136, 154
+  index: -1
+b3
+  rotate: false
+  xy: 220, 2
+  size: 117, 17
+  orig: 513, 513
+  offset: 198, 271
+  index: -1
+w1
+  rotate: false
+  xy: 111, 2
+  size: 107, 41
+  orig: 513, 513
+  offset: 200, 259
+  index: -1
+w2
+  rotate: false
+  xy: 2, 45
+  size: 238, 214
+  orig: 513, 513
+  offset: 136, 154
+  index: -1
+w3
+  rotate: false
+  xy: 339, 2
+  size: 117, 17
+  orig: 513, 513
+  offset: 198, 271
+  index: -1
