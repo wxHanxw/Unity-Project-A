@@ -71,6 +71,7 @@ public class PlayerController : MonoBehaviour
     private float RealGetDamage;
 
     //脚印
+    public Vector3 FaceDirection;
     public GameObject Footprint, toGroundParticle;
     private float FootprintdeltaTime = 0;
     private bool FootLeft = true;
@@ -402,14 +403,14 @@ public class PlayerController : MonoBehaviour
         if (SceneManager.GetActiveScene().buildIndex != 0)
         {
             //光标隐藏
-            /*if (Input.GetKey(KeyCode.LeftCommand) || CavasUI.GetComponent<UIController>().PackagePanel.activeSelf)
+            if (Input.GetKey(KeyCode.LeftCommand) || CavasUI.GetComponent<UIController>().PackagePanel.activeSelf)
             {
                 Cursor.visible = true;
             }
             else
             {
                 Cursor.visible = false;
-            }*/
+            }
 
             //选择框可见性
             if (Input.GetKeyDown(KeyCode.Z))
@@ -923,12 +924,8 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-                if (Physics.Raycast(ray, out hit))
-                {
-                    HitPos = hit.point;
-                }
+                HitPos = gameObject.transform.position + FaceDirection;
+                Debug.Log(FaceDirection);
             }
 
             if ((-gameObject.transform.position + HitPos).x > 0)
@@ -1260,6 +1257,12 @@ public class PlayerController : MonoBehaviour
             GhostSpriteBack.SetActive(!GhostSprite.GetComponent<SpriteRenderer>().enabled);
         }
 
+        //正方向
+        if (MoveDirectionx != 0 || MoveDirectiony != 0)
+        {
+            FaceDirection = (new Vector3(math.sin(transform.eulerAngles.y / 180 * math.PI), 0, math.cos(transform.eulerAngles.y / 180 * math.PI)) * MoveDirectiony + new Vector3(math.cos(transform.eulerAngles.y / 180 * math.PI), 0, -math.sin(transform.eulerAngles.y / 180 * math.PI)) * MoveDirectionx).normalized;
+        }
+
         //脚印
         if (FootprintdeltaTime > 0.1f)
         {
@@ -1279,45 +1282,59 @@ public class PlayerController : MonoBehaviour
         //鼠标控制视角旋转
         if (!CavasUI.GetComponent<UIController>().isPause)
         {
-            if (Input.GetMouseButton(0))
-            {
-                float mouseX = Input.GetAxis("Mouse X");
-                mouseX = Mathf.Clamp(mouseX, -1, 1);
-                this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * mouseX * 15, 0);
+            // if (Input.GetMouseButton(0))
+            // {
+            //     float mouseX = Input.GetAxis("Mouse X");
+            //     mouseX = Mathf.Clamp(mouseX, -1, 1);
+            //     this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * mouseX * 15, 0);
 
-                if (canMoveCamera)
-                {
-                    float mouseY = -Input.GetAxis("Mouse Y") * 0.8f;
-                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
-                    CameraY += RotateSpeed * Time.deltaTime * mouseY * 0.2f;
-                    CameraY = Mathf.Clamp(CameraY, 0.25f, 1);
-                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y * CameraY;
-                    VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY -= RotateSpeed * Time.deltaTime * mouseY * 0.025f;
-                    VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY = Mathf.Clamp(VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY, 0.5f, 0.6f);
-                }
+            if (canMoveCamera)
+            {
+                float mouseY = 0;
+                if (Input.GetKey(KeyCode.Semicolon))
+                    mouseY = 0.2f;
+                else if (Input.GetKey(KeyCode.Quote))
+                    mouseY = -0.2f;
+
+                //float mouseY = -Input.GetAxis("Mouse Y") * 0.8f;
+                VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
+                CameraY += RotateSpeed * Time.deltaTime * mouseY * 0.2f;
+                CameraY = Mathf.Clamp(CameraY, 0.25f, 1);
+                VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y * CameraY;
+                VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY -= RotateSpeed * Time.deltaTime * mouseY * 0.025f;
+                VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY = Mathf.Clamp(VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_ScreenY, 0.5f, 0.6f);
             }
+            // }
 
             //视角旋转
             if (Input.GetKey(KeyCode.Q))
             {
-                this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
+                this.transform.eulerAngles += new Vector3(0, RotateSpeed * Time.deltaTime * 3, 0);
             }
 
             if (Input.GetKey(KeyCode.E))
             {
-                this.transform.eulerAngles -= new Vector3(0, RotateSpeed * Time.deltaTime * 2, 0);
+                this.transform.eulerAngles -= new Vector3(0, RotateSpeed * Time.deltaTime * 3, 0);
             }
 
             if (canMoveCamera)
             {
-                float scroll = Input.GetAxis("Mouse ScrollWheel");
+                //鼠标控制
+                //float scroll = Input.GetAxis("Mouse ScrollWheel");
+                //键盘控制
+                float scroll = 0;
+                if (Input.GetKey(KeyCode.Comma))
+                    scroll = 0.1f;
+                else if (Input.GetKey(KeyCode.Period))
+                    scroll = -0.1f;
+
                 if (scroll != 0)
                 {
                     float newSizey = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y / CameraY;
                     newSizey += -scroll * 1.5f;
                     float newSizez = VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z += scroll * 1.5f;
                     float newComposer = VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y += -scroll * 0.2f;
-                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSizey, 3, 9) * CameraY;
+                    VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.y = Mathf.Clamp(newSizey, 4, 10) * CameraY;
                     VirtualCamera.GetCinemachineComponent<CinemachineTransposer>().m_FollowOffset.z = Mathf.Clamp(newSizez, -12, -6);
                     VirtualCamera.GetCinemachineComponent<CinemachineComposer>().m_TrackedObjectOffset.y = Mathf.Clamp(newComposer, 0.4f, 1.2f);
 

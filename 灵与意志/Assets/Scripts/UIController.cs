@@ -68,8 +68,11 @@ public class UIController : MonoBehaviour
     public bool isPause = false;
 
     public List<GameObject> isBattleFrom;
+
+    //场景切换
     public Image SecneTrans;
 
+    public bool isChangeArea = false;
     public float SecneTransdeltaTime = 0;
 
     //箱子控制
@@ -393,7 +396,7 @@ public class UIController : MonoBehaviour
 
         }
 
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Input.GetKeyDown(KeyCode.C))
         {
             SkillBarExistTime = 10;
             PlayerOptionInfoVelocity = 500;
